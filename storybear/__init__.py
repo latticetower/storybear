@@ -1,0 +1,1 @@
+from storybear.ui import create_app

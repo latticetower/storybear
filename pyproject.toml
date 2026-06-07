@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "storybear"
+description = "Pipeline to add some magic for data storytelling"
+
+authors = [
+  {name = "Tatiana Malygina"},
+]
+maintainers = [
+  {name = "Tatiana Malygina"}
+]
+version = "2026.06.07"
+dependencies = [
+    "numpy",
+    "scipy",
+    "tqdm",
+    "matplotlib",
+    "seaborn",
+    "scikit-learn",
+    "rootutils",
+]
+
+readme = "readme.md"
+
+requires-python = ">=3.10"
+
+[tool.setuptools.packages]
+find = {}
+
+[tool.setuptools.package-data]
+"*" = [".project-root"]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Repository = "https://github.com/latticetower/storybear.git"
