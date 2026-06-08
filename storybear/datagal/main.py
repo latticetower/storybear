@@ -6,8 +6,12 @@ import sys
 import itertools
 from pathlib import Path
 import pandas as pd
+from typing import List
+from collections import defaultdict
 
+from storybear.data_structures import PlotRecord
 from .plotters.base import BasePlotter, infer_kind, ColKind
+
 
 logger = logging.getLogger(__name__)
 root_path = rootutils.find_root(search_from=__file__, indicator=".project-root")
@@ -66,7 +70,7 @@ class DataGal:
     # Public API
     # ------------------------------------------------------------------
  
-    def run(self) -> dict[str, list[Path]]:
+    def run(self) -> List[PlotRecord]: #dict[str, list[Path]]:
         """
         Full pipeline: load data → load plugins → generate all plots.
  
@@ -76,7 +80,14 @@ class DataGal:
         """
         self._load_data()
         self._load_plotters()
-        return self._generate_plots()
+        plotter_class2paths = self._generate_plots()
+        all_records = []
+        for plotter_class_name, path_list in plotter_class2paths.items():
+            for plot_path, columns, stats in path_list:
+                record = PlotRecord(plot_path, columns, plotter_class_name, stats)
+                all_records.append(record)
+        return all_records
+
  
     # ------------------------------------------------------------------
     # Step 1 — data loading
@@ -158,7 +169,8 @@ class DataGal:
         }
         logger.info("Column kinds: %s", col_kinds)
  
-        results: dict[str, list[Path]] = {cls.__name__: [] for cls in self._plotter_classes}
+        # results: dict[str, list[Path]] = {cls.__name__: [] for cls in self._plotter_classes}
+        results = defaultdict(list)
  
         # Enumerate combinations of sizes 1 … max_arity
         for arity in range(1, self.max_arity + 1):
@@ -173,9 +185,9 @@ class DataGal:
                     if not plotter_cls.accepts(kinds):
                         continue
  
-                    save_path = self._run_plotter(plotter_cls, list(combo))
+                    save_path, stats = self._run_plotter(plotter_cls, list(combo))
                     if save_path is not None:
-                        results[plotter_cls.__name__].append(save_path)
+                        results[plotter_cls.__name__].append((save_path, kinds, stats))
  
         total = sum(len(v) for v in results.values())
         logger.info("Done. %d plot(s) saved to %s", total, self.output_dir)
@@ -189,7 +201,7 @@ class DataGal:
         cols_slug = "_".join(columns)
         filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
         save_path = self.output_dir / filename
- 
+        stats = {}  #  TODO: implement stats
         try:
             fig = plotter.plot(self._data, columns)
             if fig is None:
@@ -198,16 +210,16 @@ class DataGal:
                     plotter_cls.__name__,
                     columns,
                 )
-                return None
+                return None, {}
             fig.savefig(save_path, bbox_inches="tight")
             _close_figure(fig)
             logger.debug("Saved: %s", save_path)
-            return save_path
+            return save_path, stats
         except Exception as exc:
             logger.error(
                 "%s failed on columns %s: %s", plotter_cls.__name__, columns, exc
             )
-            return None
+            return None, {}
         
 
 # ---------------------------------------------------------------------------
@@ -228,5 +240,5 @@ def _close_figure(fig) -> None:
     try:
         import matplotlib.pyplot as plt
         plt.close(fig)
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)

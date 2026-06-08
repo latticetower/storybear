@@ -15,8 +15,13 @@ class HistogramPlotter(BasePlotter):
     def plot(self, data, columns):
         col = columns[0]
         fig, ax = plt.subplots()
-        data[col].dropna().plot.hist(ax=ax, bins=30, edgecolor="white")
-        ax.set_title(f"Distribution of {col}")
-        ax.set_xlabel(col)
+        try:
+            data[col].dropna().plot.hist(ax=ax, bins=30, edgecolor="white")
+            ax.set_title(f"Distribution of {col}")
+            ax.set_xlabel(col)
+        except Exception as e:
+            plt.close(fig)
+            return None
+        
         return fig
  

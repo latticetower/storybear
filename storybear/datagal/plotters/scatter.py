@@ -36,8 +36,12 @@ class BoxPlotter(BasePlotter):
             for _, grp in data.groupby(cat_col)
         ]
         labels = data[cat_col].dropna().unique().tolist()
-        ax.boxplot(groups, labels=labels)
-        ax.set_xlabel(cat_col)
-        ax.set_ylabel(num_col)
-        ax.set_title(f"{num_col} by {cat_col}")
+        try:    
+            ax.boxplot(groups, labels=labels)
+            ax.set_xlabel(cat_col)
+            ax.set_ylabel(num_col)
+            ax.set_title(f"{num_col} by {cat_col}")
+        except Exception as e:
+            plt.close(fig)
+            return None
         return fig
