@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import click
 
-from .pipeline import StorybearPipeline
+from storybear.pipeline import StorybearPipeline
 
 
 @click.command()
