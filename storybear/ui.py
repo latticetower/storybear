@@ -4,7 +4,7 @@ from pathlib import Path
 from storybear.pipeline import StorybearPipeline
 from storybear.data import generate_data
 
-from storybear.local_inference import flux_i2i_func
+from storybear.local_inference import flux_i2i_func, it2t_summary_func
 
 
 def create_app():
@@ -26,7 +26,8 @@ def create_app():
             pipeline = StorybearPipeline(
                 csv, 
                 tempdir, 
-                artist_i2i_func=flux_i2i_func
+                artist_i2i_func=flux_i2i_func,
+                editor_it2i_func=it2t_summary_func
             )
             run_result, docx_path = pipeline.run()
             print(run_result)

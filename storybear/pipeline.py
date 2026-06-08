@@ -89,7 +89,8 @@ class StorybearPipeline:
         max_arity: int = 2,
         image_width_inches: float = 5.5,
         stages: dict | None = None,
-        artist_i2i_func=None
+        artist_i2i_func=None,
+        editor_it2i_func=None
     ) -> None:
         self.csv_path = Path(csv_path)
         # self.plotters_dir = Path(plotters_dir)
@@ -120,6 +121,8 @@ class StorybearPipeline:
         self._foodie: Foodie = s.get("foodie", Foodie())
         self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
         self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))
+        if editor_it2i_func is not None:
+            self._editor.set_llm_image2text(editor_it2i_func)
         self._junior: Junior = s.get("junior", Junior())
         self._artist: Artist = s.get("artist", Artist())
         if artist_i2i_func is not None:
@@ -156,6 +159,7 @@ class StorybearPipeline:
         # ── Step 3: caption each plot ─────────────────────────────────
         logger.info("=== Step 3: Captionist ===")
         captioned = self._captionist.process_all(plot_records)
+        # return captioned, None
 
         # ── Step 4: rank each (plot, caption) pair ────────────────────
         logger.info("=== Step 4: Foodie ===")
@@ -172,11 +176,11 @@ class StorybearPipeline:
 
         # ── Step 7: reorder for narrative flow ────────────────────────
         logger.info("=== Step 7: Junior ===")
-        ordered_report = self._junior.arrange(report_meta)
+        final_record = self._junior.arrange(report_meta)
 
-        # ── Step 8: artistic post-processing ─────────────────────────
-        logger.info("=== Step 8: Artist ===")
-        final_record: ReportRecord = self._artist.process_all(ordered_report)
+        ## ── Step 8: artistic post-processing ─────────────────────────
+        #logger.info("=== Step 8: Artist ===")
+        #final_record: ReportRecord = self._artist.process_all(ordered_report)
 
         # ── Step 9: assemble docx report ─────────────────────────────
         logger.info("=== Step 9: Typography ===")
