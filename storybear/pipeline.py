@@ -89,6 +89,7 @@ class StorybearPipeline:
         max_arity: int = 2,
         image_width_inches: float = 5.5,
         stages: dict | None = None,
+        artist_i2i_func=None
     ) -> None:
         self.csv_path = Path(csv_path)
         # self.plotters_dir = Path(plotters_dir)
@@ -121,6 +122,9 @@ class StorybearPipeline:
         self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))
         self._junior: Junior = s.get("junior", Junior())
         self._artist: Artist = s.get("artist", Artist())
+        if artist_i2i_func is not None:
+            self._artist._set_llm_image2image(artist_i2i_func)
+
         self._typography: Typography = s.get(
             "typography",
             Typography(

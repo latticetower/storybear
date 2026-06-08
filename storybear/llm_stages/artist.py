@@ -34,16 +34,27 @@ class Artist(_LLMMixin):
         E.g. "minimalist, white background, muted blues and oranges".
     """
 
-    SYSTEM_PROMPT = (
-        "You are a data-visualisation artist. "
-        "Given a chart image, describe specific matplotlib changes to improve it. "
-        "Return ONLY valid JSON."
-    )
+    # SYSTEM_PROMPT = (
+    #     "You are a data-visualisation artist. "
+    #     "Given a chart image, describe specific matplotlib changes to improve it. "
+    #     "Return ONLY valid JSON."
+    # )
+    SYSTEM_PROMPT = """
+    Turn this photo to an image by adding black contours to colored areas.
+
+    Style: looks like a lazy drawing, not polished humorous and a bit stupid-looking meme-like, casual, internet style
+    Do NOT: make it realistic
+    """
 
     DEFAULT_STYLE_BRIEF = "clean, modern, publication-ready, consistent colour palette"
 
     def __init__(self, style_brief: str | None = None) -> None:
-        self.style_brief = style_brief or self.DEFAULT_STYLE_BRIEF
+        self.style_brief = style_brief or self.SYSTEM_PROMPT
+        self._llm_image2image_func = None
+
+    def _set_llm_image2image(self, i2i_func):
+        self._llm_image2image_func = i2i_func
+        pass
 
     def process(self, record: PlotRecord) -> PlotRecord:
         """Post-process a single plot and return a FinalRecord."""
@@ -63,18 +74,19 @@ class Artist(_LLMMixin):
         return ReportRecord(report.header, report.lead, new_plot_record_list)
 
     def _build_prompt(self, record: PlotRecord) -> str:
-        return (
-            f"Style brief: {self.style_brief}\n\n"
-            f"Caption for this chart: {record.caption}\n\n"
-            "Describe improvements as a JSON object with optional keys:\n"
-            '  "title": str,\n'
-            '  "xlabel": str,\n'
-            '  "ylabel": str,\n'
-            '  "color": str (matplotlib color name or hex),\n'
-            '  "grid": bool,\n'
-            '  "annotation": str  (text to annotate the most important point)\n'
-            "Return ONLY the JSON object."
-        )
+        return self.style_brief
+        # return (
+        #     f"Style brief: {self.style_brief}\n\n"
+        #     f"Caption for this chart: {record.caption}\n\n"
+        #     "Describe improvements as a JSON object with optional keys:\n"
+        #     '  "title": str,\n'
+        #     '  "xlabel": str,\n'
+        #     '  "ylabel": str,\n'
+        #     '  "color": str (matplotlib color name or hex),\n'
+        #     '  "grid": bool,\n'
+        #     '  "annotation": str  (text to annotate the most important point)\n'
+        #     "Return ONLY the JSON object."
+        # )
 
     def _apply_instructions(self, plot_path: Path, instructions: dict) -> None:
         """
@@ -93,6 +105,10 @@ class Artist(_LLMMixin):
         #       by re-running the plotter with updated style kwargs.
 
     def _call_llm_image2image(self, prompt: str, image_path: Path) -> Path:
+        if self._llm_image2image_func is None:
+            return image_path
+        img = self._llm_image2image_func(prompt, image_path)
+        print(img)
         return image_path
 
 

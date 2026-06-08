@@ -4,6 +4,8 @@ from pathlib import Path
 from storybear.pipeline import StorybearPipeline
 from storybear.data import generate_data
 
+from storybear.local_inference import flux_i2i_func
+
 
 def create_app():
     with gr.Blocks(title="storybear") as demo:
@@ -21,7 +23,11 @@ def create_app():
             csv = tempdir / "smth.csv"
             generate_data(csv)
 
-            pipeline = StorybearPipeline(csv, tempdir)
+            pipeline = StorybearPipeline(
+                csv, 
+                tempdir, 
+                artist_i2i_func=flux_i2i_func
+            )
             run_result, docx_path = pipeline.run()
             print(run_result)
             blocks = [
