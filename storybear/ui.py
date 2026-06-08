@@ -35,9 +35,9 @@ def create_app():
                 gr.Markdown(run_result.lead),
             ]
             for i, record in enumerate(run_result.plot_record_list):
-                im = gr.Image(record.plot_path)
                 text = gr.Label(record.caption)
-                blocks.append(gr.Row(f"Row_{i}", [text, im]))
+                im = gr.Image(record.plot_path)
+                blocks.append(gr.Column(f"Row_{i}", [text, im]))
             # return blocks
             # new_blocks = 
         # demo_button.click(click_demo, [], [])
