@@ -110,7 +110,6 @@ class DataGal:
         subclasses that have both `arity` and `accepted_kinds` defined.
         """
         self._plotter_classes.clear()
-        print(self.plotters_dir.absolute())
         py_files = list(self.plotters_dir.glob("*.py"))
         if not py_files:
             logger.warning("No Python files found in plotters directory: %s", self.plotters_dir)

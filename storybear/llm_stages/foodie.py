@@ -1,4 +1,6 @@
+from pathlib import Path
 import logging
+import json
 from storybear.llm_stages.base import _LLMMixin
 from storybear.data_structures import PlotRecord
 
@@ -38,9 +40,9 @@ class Foodie(_LLMMixin):
     def process(self, captioned_record: PlotRecord) -> PlotRecord:
         """Rate a single CaptionedRecord."""
         prompt = self._build_prompt(captioned_record)
-        raw = self._call_llm_vision(prompt, captioned_record.plot_record.plot_path)
+        raw = self._call_llm_vision(prompt, captioned_record.plot_path)
         ranking = self._extract_score(raw)
-        return PlotRecord(captioned_record=captioned_record, ranking=ranking)
+        return PlotRecord.from_record(captioned_record, ranking=ranking)
 
     def process_all(self, captioned_records: list[PlotRecord]) -> list[PlotRecord]:
         """Rate every CaptionedRecord."""
@@ -64,3 +66,7 @@ class Foodie(_LLMMixin):
         except Exception as exc:
             logger.warning("Foodie could not parse score from response: %s — %s", raw[:80], exc)
             return 0.0
+
+    def _call_llm_vision(self, prompt: str, image_path: Path) -> str:
+        return json.dumps({"score":0.5, "reason": "default reason"})
+    # todo: fix, replace dummy call with actual call

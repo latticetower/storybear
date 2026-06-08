@@ -65,6 +65,9 @@ class _LLMMixin:
             return msg.content[0].text
         """
         raise NotImplementedError("Override _call_llm_vision() with your LLM client.")
+    
+    def _call_llm_image2image(self, prompt: str, image_path: Path) -> Path:
+        raise NotImplementedError("Override _call_llm_vision() with your LLM client.")
 
     @staticmethod
     def _parse_json(text: str) -> Any:

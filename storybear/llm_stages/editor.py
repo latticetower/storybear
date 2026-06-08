@@ -1,4 +1,6 @@
 
+import json
+from typing import Tuple
 import logging
 from storybear.data_structures import PlotRecord, ReportRecord
 from storybear.llm_stages.base import _LLMMixin
@@ -65,16 +67,17 @@ class Editor(_LLMMixin):
             raise ValueError("exaggeration must be in [0, 1]")
         self.exaggeration = exaggeration
 
-    def compose(self, selected: list[PlotRecord]) -> ReportRecord:
+    def compose(self, records_list: list[PlotRecord]) -> ReportRecord:
         """Generate header H and lead L from the top-N records."""
-        prompt = self._build_prompt(selected)
+        prompt = self._build_prompt(records_list)
         raw = self._call_llm(prompt)
-        return self._parse_response(raw)
+        header, lead = self._parse_response(raw)
+        return ReportRecord(header, lead, records_list)
 
     def _build_prompt(self, records: list[PlotRecord]) -> str:
         summaries = "\n\n".join(
-            f"[{i+1}] Score {r.ranking:.1f} | Columns: {r.captioned_record.plot_record.columns}\n"
-            f"Caption: {r.captioned_record.caption}"
+            f"[{i+1}] Score {r.ranking:.1f} | Columns: {r.columns}\n"
+            f"Caption: {r.caption}"
             for i, r in enumerate(records)
         )
         exagg_instruction = (
@@ -92,11 +95,13 @@ class Editor(_LLMMixin):
             'Return ONLY JSON: {"header": "...", "lead": "..."}'
         )
 
-    def _parse_response(self, raw: str) -> ReportRecord:
+    def _parse_response(self, raw: str) -> Tuple[str, str]:
         try:
             data = self._parse_json(raw)
-            return ReportRecord(header=data["header"], lead=data["lead"])
+            return data["header"], data["lead"]
         except Exception as exc:
             logger.error("Editor could not parse response: %s — %s", raw[:120], exc)
-            return ReportRecord(header="Data Analysis Report", lead=raw.strip())
+            return "Data Analysis Report", raw.strip()
+    def _call_llm(self, prompt: str) -> str:
+        return json.dumps({"header": "New data insights", "lead": "You won't believe to our most recent findings"})
 

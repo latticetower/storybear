@@ -1,4 +1,5 @@
 
+import json
 import logging
 
 from storybear.data_structures import PlotRecord, ReportRecord
@@ -36,11 +37,11 @@ class Junior(_LLMMixin):
         prompt = self._build_prompt(selected, report_meta)
         raw = self._call_llm(prompt)
         order = self._parse_order(raw, len(selected))
-        return [PlotRecord(ranked_record=selected[i], position=pos) for pos, i in enumerate(order)]
+        return [PlotRecord.from_record(selected[i], position=pos) for pos, i in enumerate(order)]
 
     def _build_prompt(self, records: list[PlotRecord], meta: ReportRecord) -> str:
         summaries = "\n".join(
-            f"[{i}] {r.captioned_record.caption[:120]}"
+            f"[{i}] {r.caption[:120]}"
             for i, r in enumerate(records)
         )
         return (
@@ -63,4 +64,7 @@ class Junior(_LLMMixin):
         except Exception as exc:
             logger.warning("Junior could not parse order: %s — using original order.", exc)
             return list(range(n))
+
+    def _call_llm(self, prompt: str) -> str:
+        return json.dumps({"order": [1]})
 

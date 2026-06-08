@@ -75,13 +75,13 @@ class Captionist(_LLMMixin):
         """Generate a caption for a single PlotRecord."""
         prompt = self._build_prompt(plot_record)
         caption = self._call_llm_vision(prompt, plot_record.plot_path)
-        return PlotRecord(plot_record=plot_record, caption=caption.strip())
+        return PlotRecord.from_record(plot_record, caption=caption.strip())
 
     def process_all(self, plot_records: list[PlotRecord]) -> list[PlotRecord]:
         """Process every PlotRecord in the list."""
         results: list[PlotRecord] = []
         for i, record in enumerate(plot_records):
-            logger.info("Captionist: %d/%d — %s", i + 1, len(plot_records), record.plot_path.name)
+            logger.info("Captionist: %d/%d — %s", i + 1, len(plot_records), record.plot_path)
             results.append(self.process(record))
         return results
 
@@ -94,6 +94,9 @@ class Captionist(_LLMMixin):
             f"Write a caption of at most {self.max_caption_words} words that "
             "describes the key finding visible in the chart."
         )
+    
+    def _call_llm_vision(self, prompt: str, image_path: Path) -> str:
+        return "default caption" # todo: fix, replace dummy call with actual call
 
 
 

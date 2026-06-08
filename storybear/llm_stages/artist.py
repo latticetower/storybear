@@ -45,14 +45,14 @@ class Artist(_LLMMixin):
     def __init__(self, style_brief: str | None = None) -> None:
         self.style_brief = style_brief or self.DEFAULT_STYLE_BRIEF
 
-    def process(self, ordered_record: PlotRecord) -> PlotRecord:
+    def process(self, record: PlotRecord) -> PlotRecord:
         """Post-process a single plot and return a FinalRecord."""
-        record = PlotRecord(ordered_record)
+        # record = PlotRecord(ordered_record)
         prompt = self._build_prompt(record)
         try:
-            raw = self._call_llm_vision(prompt, record.plot_path)
-            instructions = self._parse_json(raw)
-            self._apply_instructions(record.plot_path, instructions)
+            raw = self._call_llm_image2image(prompt, record.plot_path)
+            # instructions = self._parse_json(raw)
+            # self._apply_instructions(record.plot_path, instructions)
         except Exception as exc:
             logger.warning("Artist failed on %s: %s — keeping original.", record.plot_path.name, exc)
         return record
@@ -90,5 +90,8 @@ class Artist(_LLMMixin):
         logger.info("Artist instructions for %s: %s", plot_path.name, instructions)
         # TODO: implement figure modification using stored Figure objects or
         #       by re-running the plotter with updated style kwargs.
+
+    def _call_llm_image2image(self, prompt: str, image_path: Path) -> Path:
+        return image_path
 
 

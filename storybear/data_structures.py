@@ -58,6 +58,22 @@ class PlotRecord:
     def has_position(self):
         return self.position >= 0
 
+    @staticmethod
+    def from_record(record, caption=None, ranking=-1., position=-1):
+        plot_path = record.plot_path
+        columns = record.columns
+        plotter_class = record.plotter_class
+        stats = record.stats
+        if caption is None:
+            caption = record.caption
+        if ranking < 0.0:
+            ranking = record.ranking
+        if position < 0:
+            position = record.position
+        return PlotRecord(plot_path, columns, plotter_class, stats, caption, ranking, position)
+
+        pass
+
 
 @dataclass
 class ReportRecord:

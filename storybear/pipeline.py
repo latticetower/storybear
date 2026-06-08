@@ -44,7 +44,7 @@ from storybear.llm_stages import (
     Editor,
     Foodie,
     Junior,
-    # Secretary,
+    Secretary,
 )
 from storybear.typography import Typography
 
@@ -117,7 +117,7 @@ class StorybearPipeline:
         )
         self._captionist: Captionist = s.get("captionist", Captionist())
         self._foodie: Foodie = s.get("foodie", Foodie())
-        # self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
+        self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
         self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))
         self._junior: Junior = s.get("junior", Junior())
         self._artist: Artist = s.get("artist", Artist())
@@ -157,13 +157,13 @@ class StorybearPipeline:
         logger.info("=== Step 4: Foodie ===")
         ranked = self._foodie.process_all(captioned)
 
-        # # ── Step 5: keep top-N ────────────────────────────────────────
-        # logger.info("=== Step 5: Secretary ===")
-        # selected = self._secretary.select(ranked)
+        # ── Step 5: keep top-N ────────────────────────────────────────
+        logger.info("=== Step 5: Secretary ===")
+        selected = self._secretary.select(ranked)
 
         # ── Step 6: compose header + lead ─────────────────────────────
         logger.info("=== Step 6: Editor ===")
-        report_meta: ReportRecord = self._editor.compose(ranked)
+        report_meta: ReportRecord = self._editor.compose(selected)
         logger.info("Header: %s", report_meta.header)
 
         # ── Step 7: reorder for narrative flow ────────────────────────
