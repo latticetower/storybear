@@ -48,5 +48,5 @@ TBA
 
 ## Our Team
 
-- @latticetower (Tanya Malygina)
-- @nofate (Michael Gamov)
+- [@latticetower](https://github.com/latticetower) Tatiana Malygina
+- [@nofate](https://github.com/nofate) Michael Gamov
