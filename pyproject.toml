@@ -21,7 +21,8 @@ dependencies = [
     "seaborn",
     "scikit-learn",
     "rootutils",
-    "gradio"
+    "gradio",
+    "click"
 ]
 
 readme = "readme.md"
@@ -30,6 +31,7 @@ requires-python = ">=3.10"
 
 [project.scripts]
 storytell = "storybear:main_cli"
+storygen = "storybear:generate_data_cli"
 
 [tool.setuptools.packages]
 find = {}
