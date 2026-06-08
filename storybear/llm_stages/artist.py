@@ -57,9 +57,10 @@ class Artist(_LLMMixin):
             logger.warning("Artist failed on %s: %s — keeping original.", record.plot_path.name, exc)
         return record
 
-    def process_all(self, ordered_records: list[PlotRecord]) -> list[PlotRecord]:
+    def process_all(self, report: ReportRecord) -> ReportRecord:
         """Post-process all records, preserving their order."""
-        return [self.process(r) for r in ordered_records]
+        new_plot_record_list = [self.process(r) for r in report.plot_record_list]
+        return ReportRecord(report.header, report.lead, new_plot_record_list)
 
     def _build_prompt(self, record: PlotRecord) -> str:
         return (

@@ -168,15 +168,15 @@ class StorybearPipeline:
 
         # ── Step 7: reorder for narrative flow ────────────────────────
         logger.info("=== Step 7: Junior ===")
-        ordered = self._junior.arrange(ranked, report_meta)
+        ordered_report = self._junior.arrange(report_meta)
 
         # ── Step 8: artistic post-processing ─────────────────────────
         logger.info("=== Step 8: Artist ===")
-        final_records: list[ReportRecord] = self._artist.process_all(ordered)
+        final_record: ReportRecord = self._artist.process_all(ordered_report)
 
         # ── Step 9: assemble docx report ─────────────────────────────
         logger.info("=== Step 9: Typography ===")
-        report_path = self._typography.build(final_records, report_meta)
+        report_path = self._typography.build(final_record)
 
         logger.info("Pipeline complete. Report: %s", report_path)
         return report_path

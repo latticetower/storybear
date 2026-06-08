@@ -30,19 +30,19 @@ class Junior(_LLMMixin):
 
     def arrange(
         self,
-        selected: list[PlotRecord],
-        report_meta: ReportRecord,
+        report_record: ReportRecord,
     ) -> list[PlotRecord]:
         """Return the records reordered for narrative flow."""
-        prompt = self._build_prompt(selected, report_meta)
+        prompt = self._build_prompt(report_record)
         raw = self._call_llm(prompt)
-        order = self._parse_order(raw, len(selected))
-        return [PlotRecord.from_record(selected[i], position=pos) for pos, i in enumerate(order)]
+        order = self._parse_order(raw, len(report_record.plot_record_list))
+        new_record_list = [PlotRecord.from_record(report_record.plot_record_list[i], position=pos) for pos, i in enumerate(order)]
+        return ReportRecord(report_record.header, report_record.lead, new_record_list) 
 
-    def _build_prompt(self, records: list[PlotRecord], meta: ReportRecord) -> str:
+    def _build_prompt(self, meta: ReportRecord) -> str:
         summaries = "\n".join(
             f"[{i}] {r.caption[:120]}"
-            for i, r in enumerate(records)
+            for i, r in enumerate(meta.plot_record_list)
         )
         return (
             f"Report header: {meta.header}\n"

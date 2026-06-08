@@ -48,8 +48,7 @@ class Typography:
 
     def build(
         self,
-        final_records: list[PlotRecord],
-        report_meta: ReportRecord,
+        report: ReportRecord,
     ) -> Path:
         """
         Write the .docx report and return its path.
@@ -62,9 +61,9 @@ class Typography:
             Header and lead from the Editor.
         """
         doc = Document()
-        self._add_header_and_lead(doc, report_meta)
+        self._add_header_and_lead(doc, report.header, report.lead)
 
-        for record in sorted(final_records, key=lambda r: r.position):
+        for record in sorted(report.plot_record_list, key=lambda r: r.position):
             self._add_plot_section(doc, record)
 
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,10 +75,10 @@ class Typography:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _add_header_and_lead(self, doc: Document, meta: ReportRecord) -> None:
-        doc.add_heading(meta.header, level=1)
+    def _add_header_and_lead(self, doc: Document, header: str, lead: str) -> None:
+        doc.add_heading(header, level=1)
         lead_para = doc.add_paragraph()
-        run = lead_para.add_run(meta.lead)
+        run = lead_para.add_run(lead)
         run.italic = True
         run.font.size = Pt(11)
         doc.add_paragraph()  # spacer
