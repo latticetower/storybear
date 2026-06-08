@@ -31,7 +31,7 @@ the instance via the `stages` parameter::
 """
 
 from __future__ import annotations
-
+from typing import Tuple
 import logging
 import tempfile
 from pathlib import Path
@@ -133,7 +133,7 @@ class StorybearPipeline:
     # Main entry point
     # ------------------------------------------------------------------
 
-    def run(self) -> Path:
+    def run(self) -> Tuple[ReportRecord, Path]:
         """
         Execute all nine stages in sequence.
 
@@ -179,4 +179,4 @@ class StorybearPipeline:
         report_path = self._typography.build(final_record)
 
         logger.info("Pipeline complete. Report: %s", report_path)
-        return report_path
+        return final_record, report_path
