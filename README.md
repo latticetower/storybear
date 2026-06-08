@@ -1,4 +1,4 @@
-# STORYBEAR.
+# STORYBEAR: from science to fairytale via agent-assisted storytelling.
 
 ![project logo](https://github.com/latticetower/storybear/blob/dev/assets/storybear-logo.png)
 
