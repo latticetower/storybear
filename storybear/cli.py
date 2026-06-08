@@ -6,7 +6,7 @@ from storybear.pipeline import StorybearPipeline
 
 
 @click.command()
-@click.argument('csv', type=click.File('w'))
+@click.argument('csv', type=click.File())
 def generate_data_cli(csv):
     # we can generate the data, but for simplicity let's start with something I already have and know, yet more complex
     df = pd.read_csv("hf://datasets/latticetower/nrps_modules_asdb4.0/nrps_modules_info_cleaned.csv")

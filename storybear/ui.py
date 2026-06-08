@@ -19,7 +19,7 @@ def create_app():
             tempdir = Path("temp")
             tempdir.mkdir(exist_ok=True)
             csv = tempdir / "smth.csv"
-            # generate_data_cli(csv)
+            generate_data_cli(csv)
             pipeline = StorybearPipeline(csv, tempdir)
             run_result, docx_path = pipeline.run()
             print(run_result)
