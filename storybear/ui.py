@@ -5,10 +5,6 @@ from storybear.pipeline import StorybearPipeline
 from storybear.cli import generate_data_cli
 
 
-def greet(name, intensity):
-    return "Hello, " + name + "!" * int(intensity)
-
-
 def create_app():
     with gr.Blocks(title="storybear") as demo:
         num_plots = gr.State(0)
@@ -39,4 +35,5 @@ def create_app():
             # new_blocks = 
         # demo_button.click(click_demo, [], [])
         container = gr.Row("Parent container")
+
     return demo
