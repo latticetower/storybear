@@ -2,6 +2,14 @@
 
 ![project logo](https://github.com/latticetower/storybear/blob/dev/assets/storybear-logo.png)
 
+## Features & Limitations
+* The project is an autoEDA framework with the rich user experience.
+* Any non-standard plots appearing in the report is a courtesy of authors mind.
+* In the end it should process some particular bioinformatics data formats (protein sequences, SMILES strings), because I myself am too lazy to do explicit exploratorials by hand every time.
+* Some of the captions might be hard-coded. 
+* The report header is designed to add some amount of exaggeration.
+* The plots are generated 'as is', after that they are processed with LLMs. LLMs might hallucinate. I also might hallucinate during plots coding. This means that any results might not correctly represent the input data. **Use at your own risk**.
+
 ## Howto run
 
 First, you need to install it as a package
