@@ -3,14 +3,13 @@ import pandas as pd
 import click
 
 from storybear.pipeline import StorybearPipeline
-
+from storybear.data import generate_data
 
 @click.command()
 @click.argument('csv', type=click.File())
 def generate_data_cli(csv):
     # we can generate the data, but for simplicity let's start with something I already have and know, yet more complex
-    df = pd.read_csv("hf://datasets/latticetower/nrps_modules_asdb4.0/nrps_modules_info_cleaned.csv")
-    df.to_csv(csv, index=None)
+    generate_data(csv)
 
 
 @click.command()

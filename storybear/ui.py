@@ -2,7 +2,7 @@ import gradio as gr
 import pandas as pd
 from pathlib import Path
 from storybear.pipeline import StorybearPipeline
-from storybear.cli import generate_data_cli
+from storybear.data import generate_data
 
 
 def create_app():
@@ -19,7 +19,8 @@ def create_app():
             tempdir = Path("temp")
             tempdir.mkdir(exist_ok=True)
             csv = tempdir / "smth.csv"
-            generate_data_cli(csv)
+            generate_data(csv)
+
             pipeline = StorybearPipeline(csv, tempdir)
             run_result, docx_path = pipeline.run()
             print(run_result)
@@ -30,7 +31,7 @@ def create_app():
             for i, record in enumerate(run_result.plot_record_list):
                 im = gr.Image(record.plot_path)
                 text = gr.Label(record.caption)
-                blocks.append(gr.Row(f"Row_{i}", [im, text]))
+                blocks.append(gr.Row(f"Row_{i}", [text, im]))
             # return blocks
             # new_blocks = 
         # demo_button.click(click_demo, [], [])
