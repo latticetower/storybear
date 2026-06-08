@@ -22,7 +22,8 @@ dependencies = [
     "scikit-learn",
     "rootutils",
     "gradio",
-    "click"
+    "click",
+    "python-docx"
 ]
 
 readme = "readme.md"
