@@ -1,6 +1,7 @@
 
 import json
-from typing import Tuple
+from typing import Tuple, List
+from pathlib import Path
 import logging
 from storybear.data_structures import PlotRecord, ReportRecord
 from storybear.llm_stages.base import _LLMMixin
@@ -66,42 +67,80 @@ class Editor(_LLMMixin):
         if not 0.0 <= exaggeration <= 1.0:
             raise ValueError("exaggeration must be in [0, 1]")
         self.exaggeration = exaggeration
+        self._llm_image2text_func = None
+
+    def set_llm_image2text(self, it2t_func):
+        self._llm_image2text_func = it2t_func
 
     def compose(self, records_list: list[PlotRecord]) -> ReportRecord:
         """Generate header H and lead L from the top-N records."""
-        prompt = self._build_prompt(records_list)
-        raw = self._call_llm(prompt)
-        header, lead = self._parse_response(raw)
-        return ReportRecord(header, lead, records_list)
+        header_prompt, lead_prompt = self._build_prompt(records_list)
+        prepared_records = [rec.caption for rec in records_list]
+        prepared_records = prepared_records[:5] # TODO: add view
+        raw_lead = self._call_llm(lead_prompt, prepared_records)
+        print(raw_lead)
+        raw_header = self._call_llm(header_prompt, [raw_lead])
+        print("raw header", raw_header)
+        print("raw lead", raw_lead)
+        #header = self._parse_response(raw_header)
+        #lead = self._parse_response(raw_lead)
+        # header, lead = self._parse_response(raw)
+        return ReportRecord(raw_header, raw_lead, records_list)
 
+    # TODO: make something with _build_prompt: currently not in use
     def _build_prompt(self, records: list[PlotRecord]) -> str:
-        summaries = "\n\n".join(
-            f"[{i+1}] Score {r.ranking:.1f} | Columns: {r.columns}\n"
-            f"Caption: {r.caption}"
-            for i, r in enumerate(records)
-        )
+        # summaries = "\n\n".join(
+        #     f"[{i+1}] Score {r.ranking:.1f} | Columns: {r.columns}\n"
+        #     f"Caption: {r.caption}"
+        #     for i, r in enumerate(records)
+        # )
         exagg_instruction = (
             "Be strictly factual and measured."
             if self.exaggeration < 0.2
             else f"Use a sensationalism level of {self.exaggeration:.0%} "
                  "(0% = dry academic, 100% = clickbait tabloid)."
         )
-        return (
+        header_prompt = (
             f"You have {len(records)} data findings summarised below.\n\n"
-            f"{summaries}\n\n"
-            f"Write a report HEADER (one punchy title) and a LEAD paragraph "
+            f"Write a report HEADER (one punchy title, 1 sentence, 10 words or less).\n"
+            f"{exagg_instruction}\n"
+            'Return ONLY text.'
+        )  #f"{summaries}\n\n"
+        lead_prompt = (
+            f"You have {len(records)} data findings summarised below.\n\n"
+            f"Write a report LEAD paragraph "
             f"(2-4 sentences) that captures the most important insight.\n"
             f"{exagg_instruction}\n"
-            'Return ONLY JSON: {"header": "...", "lead": "..."}'
+            'Return ONLY text'
         )
+        return header_prompt, lead_prompt
 
     def _parse_response(self, raw: str) -> Tuple[str, str]:
         try:
             data = self._parse_json(raw)
-            return data["header"], data["lead"]
+            choice = data['choices'][0]
+            return choice['message']['content']
+            # return data["header"], data["lead"]
         except Exception as exc:
             logger.error("Editor could not parse response: %s — %s", raw[:120], exc)
             return "Data Analysis Report", raw.strip()
-    def _call_llm(self, prompt: str) -> str:
-        return json.dumps({"header": "New data insights", "lead": "You won't believe to our most recent findings"})
+
+    #def _call_llm(self, prompt: str) -> str:
+    #    return json.dumps({"header": "New data insights", "lead": "You won't believe to our most recent findings"})
+    
+    def _call_llm(self, prompt: str, records_list: List[str]) -> str:
+        if self._llm_image2text_func is None:
+            return json.dumps({"header": "New data insights", "lead": "You won't believe to our most recent findings"})
+        user_messages = [{"role": "user", "content": text} for text in records_list]
+        # response_format = {
+        #     "type": "json_object",
+        #     "schema": {
+        #         "type": "object",
+        #         "properties": {"header": {"type": "string"}, "lead": {"type": "string"}},
+        #         "required": ["header", "lead"],
+        #     }
+        # }
+        res = self._llm_image2text_func(prompt, user_messages)
+        return res
+
 

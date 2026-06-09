@@ -54,7 +54,6 @@ class Artist(_LLMMixin):
 
     def _set_llm_image2image(self, i2i_func):
         self._llm_image2image_func = i2i_func
-        pass
 
     def process(self, record: PlotRecord) -> PlotRecord:
         """Post-process a single plot and return a FinalRecord."""

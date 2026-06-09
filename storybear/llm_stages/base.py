@@ -2,6 +2,7 @@
 import logging
 from pathlib import Path
 import json
+from typing import Union, Dict, List
 
 from typing import Any
 
@@ -21,7 +22,7 @@ class _LLMMixin:
 
     SYSTEM_PROMPT: str = "You are a helpful data analysis assistant."
 
-    def _call_llm(self, prompt: str) -> str:
+    def _call_llm(self, prompt: str, records_list: List[str]) -> str:
         """
         Send *prompt* to the LLM and return the plain-text response.
 
@@ -70,7 +71,9 @@ class _LLMMixin:
         raise NotImplementedError("Override _call_llm_vision() with your LLM client.")
 
     @staticmethod
-    def _parse_json(text: str) -> Any:
+    def _parse_json(text: Union[str, Dict]) -> Any:
         """Strip markdown fences and parse JSON from an LLM response."""
+        if isinstance(text, dict):
+            return text
         cleaned = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
         return json.loads(cleaned)
