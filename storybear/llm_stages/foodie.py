@@ -2,7 +2,7 @@ from pathlib import Path
 import logging
 import json
 from storybear.llm_stages.base import _LLMMixin
-from storybear.data_structures import PlotRecord
+from storybear.data_structures import PlotRecord, ReportRecord
 
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
@@ -37,20 +37,21 @@ class Foodie(_LLMMixin):
     def __init__(self, criteria: str | None = None) -> None:
         self.criteria = criteria or self.DEFAULT_CRITERIA
 
-    def process(self, captioned_record: PlotRecord) -> PlotRecord:
+    def process(self, record: PlotRecord) -> PlotRecord:
         """Rate a single CaptionedRecord."""
-        prompt = self._build_prompt(captioned_record)
-        raw = self._call_llm_vision(prompt, captioned_record.plot_path)
+        prompt = self._build_prompt(record)
+        raw = self._call_llm_vision(prompt, record.plot_path)
         ranking = self._extract_score(raw)
-        return PlotRecord.from_record(captioned_record, ranking=ranking)
+        return PlotRecord.from_record(record, ranking=ranking)
 
-    def process_all(self, captioned_records: list[PlotRecord]) -> list[PlotRecord]:
+    def process_all(self, report: ReportRecord) -> ReportRecord:
         """Rate every CaptionedRecord."""
-        results: list[PlotRecord] = []
-        for i, record in enumerate(captioned_records):
-            logger.info("Foodie: %d/%d", i + 1, len(captioned_records))
-            results.append(self.process(record))
-        return results
+        plot_list: list[PlotRecord] = []
+        for i, record in enumerate(report.plot_record_list):
+            logger.info("Foodie: %d/%d", i + 1, len(report.plot_record_list))
+            plot_list.append(self.process(record))
+        new_record = ReportRecord(report.header, report.lead, plot_list)
+        return new_record
 
     def _build_prompt(self, record: PlotRecord) -> str:
         return (

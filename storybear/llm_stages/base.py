@@ -6,6 +6,7 @@ from typing import Union, Dict, List
 
 from typing import Any
 
+from storybear.data_structures import PlotRecord
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Shared LLM mixin
@@ -22,7 +23,7 @@ class _LLMMixin:
 
     SYSTEM_PROMPT: str = "You are a helpful data analysis assistant."
 
-    def _call_llm(self, prompt: str, records_list: List[str]) -> str:
+    def _call_llm(self, prompt: str, records_list: List[PlotRecord]) -> str:
         """
         Send *prompt* to the LLM and return the plain-text response.
 

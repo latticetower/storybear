@@ -1,7 +1,7 @@
 
 import json
 import logging
-
+from typing import List
 from storybear.data_structures import PlotRecord, ReportRecord
 from storybear.llm_stages.base import _LLMMixin
 logger = logging.getLogger(__name__)
@@ -28,13 +28,10 @@ class Junior(_LLMMixin):
         "into a compelling narrative order. Return ONLY valid JSON."
     )
 
-    def arrange(
-        self,
-        report_record: ReportRecord,
-    ) -> list[PlotRecord]:
+    def arrange(self, report_record: ReportRecord) -> list[PlotRecord]:
         """Return the records reordered for narrative flow."""
         prompt = self._build_prompt(report_record)
-        raw = self._call_llm(prompt)
+        raw = self._call_llm(prompt, report_record.plot_record_list)
         order = self._parse_order(raw, len(report_record.plot_record_list))
         new_record_list = [PlotRecord.from_record(report_record.plot_record_list[i], position=pos) for pos, i in enumerate(order)]
         return ReportRecord(report_record.header, report_record.lead, new_record_list) 
@@ -65,6 +62,6 @@ class Junior(_LLMMixin):
             logger.warning("Junior could not parse order: %s — using original order.", exc)
             return list(range(n))
 
-    def _call_llm(self, prompt: str) -> str:
+    def _call_llm(self, prompt: str, records_list: List[PlotRecord]) -> str:
         return json.dumps({"order": [1]})
 

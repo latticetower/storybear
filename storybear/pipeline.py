@@ -90,7 +90,7 @@ class StorybearPipeline:
         image_width_inches: float = 5.5,
         stages: dict | None = None,
         artist_i2i_func=None,
-        editor_it2i_func=None
+        editor_it2t_func=None
     ) -> None:
         self.csv_path = Path(csv_path)
         # self.plotters_dir = Path(plotters_dir)
@@ -121,8 +121,8 @@ class StorybearPipeline:
         self._foodie: Foodie = s.get("foodie", Foodie())
         self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
         self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))
-        if editor_it2i_func is not None:
-            self._editor.set_llm_image2text(editor_it2i_func)
+        if editor_it2t_func is not None:
+            self._editor.set_llm_image2text(editor_it2t_func)
         self._junior: Junior = s.get("junior", Junior())
         self._artist: Artist = s.get("artist", Artist())
         if artist_i2i_func is not None:
@@ -152,31 +152,32 @@ class StorybearPipeline:
         logger.info("=== Step 2: DataGal ===")
         plot_records = self._datagal.run()
         logger.info("DataGal produced %d plot(s).", len(plot_records))
+        report = ReportRecord("", "", plot_record_list=plot_records)
 
         if not plot_records:
             raise RuntimeError("DataGal produced no plots — check your plotters directory.")
 
         # ── Step 3: caption each plot ─────────────────────────────────
         logger.info("=== Step 3: Captionist ===")
-        captioned = self._captionist.process_all(plot_records)
+        report = self._captionist.process_all(report)
         # return captioned, None
 
-        # ── Step 4: rank each (plot, caption) pair ────────────────────
-        logger.info("=== Step 4: Foodie ===")
-        ranked = self._foodie.process_all(captioned)
+        # # ── Step 4: rank each (plot, caption) pair ────────────────────
+        # logger.info("=== Step 4: Foodie ===")
+        # plot_records = self._foodie.process_all(plot_records)
 
         # ── Step 5: keep top-N ────────────────────────────────────────
         logger.info("=== Step 5: Secretary ===")
-        selected = self._secretary.select(ranked)
+        report = self._secretary.select(report)
 
         # ── Step 6: compose header + lead ─────────────────────────────
         logger.info("=== Step 6: Editor ===")
-        report_meta: ReportRecord = self._editor.compose(selected)
-        logger.info("Header: %s", report_meta.header)
+        report: ReportRecord = self._editor.compose(report)
+        logger.info("Header: %s", report.header)
 
         # ── Step 7: reorder for narrative flow ────────────────────────
         logger.info("=== Step 7: Junior ===")
-        final_record = self._junior.arrange(report_meta)
+        report = self._junior.arrange(report)
 
         ## ── Step 8: artistic post-processing ─────────────────────────
         #logger.info("=== Step 8: Artist ===")
@@ -184,7 +185,7 @@ class StorybearPipeline:
 
         # ── Step 9: assemble docx report ─────────────────────────────
         logger.info("=== Step 9: Typography ===")
-        report_path = self._typography.build(final_record)
+        report_path = self._typography.build(report)
 
         logger.info("Pipeline complete. Report: %s", report_path)
-        return final_record, report_path
+        return report, report_path

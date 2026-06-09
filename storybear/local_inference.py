@@ -6,13 +6,23 @@ from pathlib import Path
 from typing import List, Tuple
 # from llama_cpp import Llama
 
+from storybear.data_structures import PlotRecord
+
 device = "mps"
 dtype = torch.bfloat16
 flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", torch_dtype=dtype).to(device)
 flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
 
 
-def flux_i2i_func(prompt, file_path):
+def flux_i2i_func(prompt: str, file_path: Path):
+    """
+    Gets the prompt with the image path as an input, returns image (or image path) processed by VLM.
+    
+    :param prompt: String with text prompt describing style which should be applied to the image.
+    :type prompt: str
+    :param file_path: Path to the image file to modify
+    :type file_path: Path
+    """
     #pipe = Flux2KleinPipeline.from_pretrained(
     #    "black-forest-labs/FLUX.2-klein-4B", torch_dtype=torch.bfloat16
     #).to("cuda")
@@ -79,11 +89,22 @@ it2t_model = AutoModelForImageTextToText.from_pretrained(
 #         })
 #     return messages
 
+def build_user_messages(record_list: List[PlotRecord]):
+    user_messages = [
+        {
+            "role": "user", 
+            "content": record.caption
+        }
+        for record in record_list
+    ]
+    return user_messages
 
-def it2t_summary_func(system_prompt, user_messages):
+
+def it2t_summary_func(system_prompt, record_list: List[PlotRecord]):
+    user_messages = build_user_messages(record_list)
     messages = [{"role": "system", "content": system_prompt}] + user_messages
     # messages = get_messages(prompt, image_data)
-    print(messages)
+    # print(messages)
     inputs = it2t_processor.apply_chat_template(
         messages,
         add_generation_prompt=True,

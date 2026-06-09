@@ -27,7 +27,7 @@ def create_app():
                 csv, 
                 tempdir, 
                 artist_i2i_func=flux_i2i_func,
-                editor_it2i_func=it2t_summary_func
+                editor_it2t_func=it2t_summary_func
             )
             run_result, docx_path = pipeline.run()
             print(run_result)

@@ -75,9 +75,9 @@ class Editor(_LLMMixin):
     def compose(self, records_list: list[PlotRecord]) -> ReportRecord:
         """Generate header H and lead L from the top-N records."""
         header_prompt, lead_prompt = self._build_prompt(records_list)
-        prepared_records = [rec.caption for rec in records_list]
-        prepared_records = prepared_records[:5] # TODO: add view
-        raw_lead = self._call_llm(lead_prompt, prepared_records)
+        #prepared_records = [rec.caption for rec in records_list]
+        #prepared_records = prepared_records[:5] # TODO: add view
+        raw_lead = self._call_llm(lead_prompt, records_list)
         print(raw_lead)
         raw_header = self._call_llm(header_prompt, [raw_lead])
         print("raw header", raw_header)
@@ -128,10 +128,10 @@ class Editor(_LLMMixin):
     #def _call_llm(self, prompt: str) -> str:
     #    return json.dumps({"header": "New data insights", "lead": "You won't believe to our most recent findings"})
     
-    def _call_llm(self, prompt: str, records_list: List[str]) -> str:
+    def _call_llm(self, prompt: str, record_list: List[PlotRecord]) -> str:
         if self._llm_image2text_func is None:
             return json.dumps({"header": "New data insights", "lead": "You won't believe to our most recent findings"})
-        user_messages = [{"role": "user", "content": text} for text in records_list]
+        # user_messages = [{"role": "user", "content": text} for text in records_list]
         # response_format = {
         #     "type": "json_object",
         #     "schema": {
@@ -140,7 +140,7 @@ class Editor(_LLMMixin):
         #         "required": ["header", "lead"],
         #     }
         # }
-        res = self._llm_image2text_func(prompt, user_messages)
+        res = self._llm_image2text_func(prompt, record_list)
         return res
 
 

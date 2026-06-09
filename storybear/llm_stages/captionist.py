@@ -77,13 +77,14 @@ class Captionist(_LLMMixin):
         caption = self._call_llm_vision(prompt, plot_record.plot_path)
         return PlotRecord.from_record(plot_record, caption=caption.strip())
 
-    def process_all(self, plot_records: list[PlotRecord]) -> list[PlotRecord]:
+    def process_all(self, report: ReportRecord) -> ReportRecord:
         """Process every PlotRecord in the list."""
-        results: list[PlotRecord] = []
-        for i, record in enumerate(plot_records):
-            logger.info("Captionist: %d/%d — %s", i + 1, len(plot_records), record.plot_path)
-            results.append(self.process(record))
-        return results
+        plot_records: list[PlotRecord] = []
+        for i, record in enumerate(report.plot_record_list):
+            logger.info("Captionist: %d/%d — %s", i + 1, len(report.plot_record_list), record.plot_path)
+            plot_records.append(self.process(record))
+        new_report = ReportRecord(report.header, report.lead, plot_records)
+        return new_report
 
     def _build_prompt(self, record: PlotRecord) -> str:
         stats_str = json.dumps(record.stats, indent=2) if record.stats else "(none)"
