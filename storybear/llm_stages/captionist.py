@@ -101,6 +101,7 @@ class Captionist(_LLMMixin):
             f"Write a caption of at most {self.max_caption_words} words that "
             "describe the key finding visible in the chart."
         )
+    
     def _call_llm(self, prompt: str, plot_record: PlotRecord) -> str:
         if self._llm_image2text_func is None:
             return "default caption" # todo: fix, replace dummy call with actual call

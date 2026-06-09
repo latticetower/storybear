@@ -27,6 +27,7 @@ def create_app():
                 csv, 
                 tempdir, 
                 captionist_it2t_func=it2t_summary_func,
+                foodie_it2t_func=it2t_summary_func,
                 editor_it2t_func=it2t_summary_func,
                 artist_i2i_func=flux_i2i_func,
             )

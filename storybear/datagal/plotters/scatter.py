@@ -31,6 +31,10 @@ class ScatterPlotter(BasePlotter):
         subset = data[[x_col, y_col]].dropna()
         if len(subset) < 2:
             return None
+        if len(subset[x_col].unique()) < 5:
+            return None
+        if len(subset[y_col].unique()) < 5:
+            return None
         stat_info = dict()
         stat_info["Number of points"] = len(subset)
         stat_info[f"Mean of {x_col} values"] = subset[x_col].mean()

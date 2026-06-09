@@ -102,17 +102,17 @@ class Editor(_LLMMixin):
                  "(0% = dry academic, 100% = clickbait tabloid)."
         )
         header_prompt = (
-            f"You have {len(records)} data findings summarised below.\n\n"
-            f"Write a report HEADER (one punchy title, 1 sentence, 10 words or less).\n"
-            f"{exagg_instruction}\n"
-            'Return ONLY text.'
+            f"You have lead describing the data that you have.\n"
+            f"Write a short and catchy report HEADER (one punchy title, 1 sentence, 10 words or less)."
+            f"{exagg_instruction}"
+            #'Return ONLY text.'
         )  #f"{summaries}\n\n"
         lead_prompt = (
-            f"You have {len(records)} data findings summarised below.\n\n"
+            f"You have {len(records)} data findings describing the data you have.\n"
             f"Write a report LEAD paragraph "
-            f"(2-4 sentences) that captures the most important insight.\n"
+            f"(2-4 sentences) that captures the most important insight. Don't provide too many details. "
             f"{exagg_instruction}\n"
-            'Return ONLY text'
+            # 'Return ONLY text'
         )
         return header_prompt, lead_prompt
 
@@ -131,7 +131,7 @@ class Editor(_LLMMixin):
     
     def _call_llm(self, prompt: str, record_list: List[PlotRecord]) -> str:
         if self._llm_image2text_func is None:
-            return json.dumps({"header": "New data insights", "lead": "You won't believe to our most recent findings"})
+            return "New data insights from Editor. You won't believe to our most recent findings!"
         # user_messages = [{"role": "user", "content": text} for text in records_list]
         # response_format = {
         #     "type": "json_object",
@@ -143,5 +143,3 @@ class Editor(_LLMMixin):
         # }
         res = self._llm_image2text_func(prompt, record_list)
         return res
-
-

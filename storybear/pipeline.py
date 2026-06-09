@@ -90,6 +90,7 @@ class StorybearPipeline:
         image_width_inches: float = 5.5,
         stages: dict | None = None,
         captionist_it2t_func=None,
+        foodie_it2t_func=None,
         editor_it2t_func=None,
         artist_i2i_func=None,
     ) -> None:
@@ -123,6 +124,8 @@ class StorybearPipeline:
             self._captionist.set_llm_image2text(captionist_it2t_func)
         
         self._foodie: Foodie = s.get("foodie", Foodie())
+        if foodie_it2t_func is not None:
+            self._foodie.set_llm_image2text(foodie_it2t_func)
         self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
         self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))
         if editor_it2t_func is not None:
@@ -166,9 +169,9 @@ class StorybearPipeline:
         report = self._captionist.process_all(report)
         # return captioned, None
 
-        # # ── Step 4: rank each (plot, caption) pair ────────────────────
-        # logger.info("=== Step 4: Foodie ===")
-        # plot_records = self._foodie.process_all(plot_records)
+        # ── Step 4: rank each (plot, caption) pair ────────────────────
+        logger.info("=== Step 4: Foodie ===")
+        report = self._foodie.process_all(report)
 
         # ── Step 5: keep top-N ────────────────────────────────────────
         logger.info("=== Step 5: Secretary ===")
@@ -183,9 +186,9 @@ class StorybearPipeline:
         logger.info("=== Step 7: Junior ===")
         report = self._junior.arrange(report)
 
-        ## ── Step 8: artistic post-processing ─────────────────────────
-        #logger.info("=== Step 8: Artist ===")
-        #final_record: ReportRecord = self._artist.process_all(ordered_report)
+        # ── Step 8: artistic post-processing ─────────────────────────
+        logger.info("=== Step 8: Artist ===")
+        report: ReportRecord = self._artist.process_all(report)
 
         # ── Step 9: assemble docx report ─────────────────────────────
         logger.info("=== Step 9: Typography ===")

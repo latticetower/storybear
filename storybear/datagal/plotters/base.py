@@ -57,7 +57,7 @@ def infer_kind(series: pd.Series) -> ColKind:
     if series.dtype == object:
         return "text"
     return "unknown"
- 
+
 
  
 class BasePlotter(ABC):
