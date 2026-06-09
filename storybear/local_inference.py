@@ -18,7 +18,8 @@ else:
 dtype = torch.bfloat16
 
 flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", dtype=dtype).to(device)
-flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
+if device != "cpu":
+    flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
 
 
 def flux_i2i_func(prompt: str, file_path: Path):
