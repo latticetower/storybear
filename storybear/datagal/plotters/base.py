@@ -26,6 +26,7 @@ from __future__ import annotations
 import inspect
 # import itertools
 import logging
+from typing import Union, Dict
 # import sys
 # import tempfile
 from abc import ABC, abstractmethod
@@ -119,6 +120,26 @@ class BasePlotter(ABC):
         -------
         matplotlib.figure.Figure
             A figure that DataGal will save to disk.
+        """
+
+    @abstractmethod
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+        """
+        Produce and return an dictionary with statistics computed for *columns* in *data*.
+ 
+        Parameters
+        ----------
+        data:
+            The full DataFrame (already loaded, with nulls present as-is).
+        columns:
+            The column names this plotter should visualise.  Their order
+            matches `accepted_kinds`.
+ 
+        Returns
+        -------
+        dict
+            A dictionary with key-value pairs, representing the named parameters of plots with their values. 
+            Returns None if there is nothing worth drawing present in the dataset.
         """
 
 

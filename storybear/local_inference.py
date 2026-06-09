@@ -3,6 +3,7 @@ import torch
 from PIL import Image
 from diffusers import Flux2KleinPipeline
 from pathlib import Path
+from typing import Union
 from typing import List, Tuple
 # from llama_cpp import Llama
 
@@ -89,18 +90,18 @@ it2t_model = AutoModelForImageTextToText.from_pretrained(
 #         })
 #     return messages
 
-def build_user_messages(record_list: List[PlotRecord]):
+def build_user_messages(record_list: List[Union[PlotRecord, str]]):
     user_messages = [
         {
             "role": "user", 
-            "content": record.caption
+            "content": record.caption if isinstance(record, PlotRecord) else record
         }
         for record in record_list
     ]
     return user_messages
 
 
-def it2t_summary_func(system_prompt, record_list: List[PlotRecord]):
+def it2t_summary_func(system_prompt, record_list: List[Union[PlotRecord, str]]):
     user_messages = build_user_messages(record_list)
     messages = [{"role": "system", "content": system_prompt}] + user_messages
     # messages = get_messages(prompt, image_data)

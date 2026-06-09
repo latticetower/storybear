@@ -202,6 +202,9 @@ class DataGal:
         save_path = self.output_dir / filename
         stats = {}  #  TODO: implement stats
         try:
+            stats = plotter.compute_statistics(self._data, columns)
+            if stats is None:
+                return None, {}
             fig = plotter.plot(self._data, columns)
             if fig is None:
                 logger.warning(

@@ -4,7 +4,8 @@ Drop this file into your plotters directory and DataProcessor picks it up automa
 """
  
 import matplotlib.pyplot as plt
- 
+import pandas as pd
+from typing import Union, Dict
 from storybear.datagal.plotters.base import BasePlotter
  
  
@@ -24,4 +25,18 @@ class HistogramPlotter(BasePlotter):
             return None
         
         return fig
- 
+
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]: 
+        if len(columns) != 1:
+            return None
+        col = columns[0]
+        if not col in data.columns:
+            return None
+        values = data[col].dropna()
+        if len(values) < 2:
+            return None
+        stat_info = dict()
+        stat_info["Number of points"] = len(values)
+        stat_info[f"Mean of {col} values"] = values.mean()
+        stat_info[f"Standard deviation of {col} values"] = values.std()
+        return stat_info
