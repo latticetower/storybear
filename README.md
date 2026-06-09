@@ -25,11 +25,21 @@ storygen smth.csv
 ```
 as a result, there will appear file named `smth.csv` in the current directory.
 
+### Command line
+
 Select your csv file (in the example below it is named `smth.csv` and located in the current directory) with tabular data and run
 ```
 storytell smth.csv --tempdir imgdir
 ```
 In the example above, `imgdir` is a path to a directory where the plot files, including temporary ones, will be located.
+
+This produces the report in docx format.
+
+### Interactive (gradio demo)
+There is also an option to run demo with gradio. This can be done by running
+```
+gradio app.py
+```
 
 ## Pipeline scheme
 
