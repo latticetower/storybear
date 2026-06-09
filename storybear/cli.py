@@ -8,7 +8,7 @@ from storybear.pipeline import StorybearPipeline
 from storybear.data import generate_data
 
 @click.command()
-@click.argument('csv', type=click.File())
+@click.argument('csv', type=click.Path())
 def generate_data_cli(csv):
     # we can generate the data, but for simplicity let's start with something I already have and know, yet more complex
     generate_data(csv)
