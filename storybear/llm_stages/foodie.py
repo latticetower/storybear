@@ -81,9 +81,12 @@ class Foodie(_LLMMixin):
             # scores[i]
         print(scores)
         print(ranking_list)
-        for i, record in enumerate(report.plot_record_list):
+        sorted_index = np.argsort(scores)
+        for i in sorted_index[::-1]:
+            record = report.plot_record_list[i]
             new_record = PlotRecord.from_record(record, ranking=scores[i]/len(scores))
             plot_list.append(new_record)
+
         new_report = ReportRecord(report.header, report.lead, plot_list)
         return new_report
 
