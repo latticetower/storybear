@@ -9,9 +9,15 @@ from typing import List, Tuple
 
 from storybear.data_structures import PlotRecord
 
-device = "mps"
+if torch.backends.mps.is_available():
+    device = "mps"
+if torch.cuda.is_available():
+    device = "cuda"
+else:
+    device = "cpu"
 dtype = torch.bfloat16
-flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", torch_dtype=dtype).to(device)
+
+flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", dtype=dtype).to(device)
 flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
 
 
