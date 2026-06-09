@@ -25,7 +25,7 @@ Stage map
 """
 
 from __future__ import annotations
-
+from typing import List
 import base64
 import json
 import logging
@@ -70,11 +70,15 @@ class Captionist(_LLMMixin):
 
     def __init__(self, max_caption_words: int = 60) -> None:
         self.max_caption_words = max_caption_words
+        self._llm_image2text_func = None
+
+    def set_llm_image2text(self, it2t_func):
+        self._llm_image2text_func = it2t_func
 
     def process(self, plot_record: PlotRecord) -> PlotRecord:
         """Generate a caption for a single PlotRecord."""
         prompt = self._build_prompt(plot_record)
-        caption = self._call_llm_vision(prompt, plot_record.plot_path)
+        caption = self._call_llm(prompt, plot_record)
         return PlotRecord.from_record(plot_record, caption=caption.strip())
 
     def process_all(self, report: ReportRecord) -> ReportRecord:
@@ -93,11 +97,13 @@ class Captionist(_LLMMixin):
             f"for column(s): {', '.join(record.columns)}.\n\n"
             f"Statistical summary:\n{stats_str}\n\n"
             f"Write a caption of at most {self.max_caption_words} words that "
-            "describes the key finding visible in the chart."
+            "describe the key finding visible in the chart."
         )
-    
-    def _call_llm_vision(self, prompt: str, image_path: Path) -> str:
-        return "default caption" # todo: fix, replace dummy call with actual call
+    def _call_llm(self, prompt: str, plot_record: PlotRecord) -> str:
+        if self._llm_image2text_func is None:
+            return "default caption" # todo: fix, replace dummy call with actual call
+        res = self._llm_image2text_func(prompt, [plot_record])
+        return res
 
 
 

@@ -89,8 +89,9 @@ class StorybearPipeline:
         max_arity: int = 2,
         image_width_inches: float = 5.5,
         stages: dict | None = None,
+        captionist_it2t_func=None,
+        editor_it2t_func=None,
         artist_i2i_func=None,
-        editor_it2t_func=None
     ) -> None:
         self.csv_path = Path(csv_path)
         # self.plotters_dir = Path(plotters_dir)
@@ -118,6 +119,9 @@ class StorybearPipeline:
             max_arity=self.max_arity,
         )
         self._captionist: Captionist = s.get("captionist", Captionist())
+        if captionist_it2t_func is not None:
+            self._captionist.set_llm_image2text(captionist_it2t_func)
+        
         self._foodie: Foodie = s.get("foodie", Foodie())
         self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
         self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))

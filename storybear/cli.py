@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import click
 
+from storybear.local_inference import flux_i2i_func, it2t_summary_func
+
 from storybear.pipeline import StorybearPipeline
 from storybear.data import generate_data
 
@@ -18,7 +20,11 @@ def generate_data_cli(csv):
 def main_cli(csv, tempdir):
     """Processes tabular file in .csv format and saves plots to the provided directory"""
     print(csv, tempdir)
-    pipeline = StorybearPipeline(csv, tempdir)
+    pipeline = StorybearPipeline(
+        csv, 
+        tempdir,
+        captionist_it2t_func=it2t_summary_func,
+    )
     pipeline.run()
     
 
