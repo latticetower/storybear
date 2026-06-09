@@ -88,6 +88,8 @@ class Captionist(_LLMMixin):
             logger.info("Captionist: %d/%d — %s", i + 1, len(report.plot_record_list), record.plot_path)
             plot_records.append(self.process(record))
         new_report = ReportRecord(report.header, report.lead, plot_records)
+        for record in new_report.plot_record_list:
+            print(record.plotter_class, record.columns, record.caption)
         return new_report
 
     def _build_prompt(self, record: PlotRecord) -> str:

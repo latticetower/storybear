@@ -31,17 +31,18 @@ class Secretary:
     def __init__(self, top_n: int = 5) -> None:
         self.top_n = top_n
 
-    def select(self, ranked_records: list[PlotRecord]) -> list[PlotRecord]:
+    def select(self, report: ReportRecord) -> ReportRecord:
         """Return the top-N records sorted by ranking descending."""
-        sorted_records = sorted(ranked_records, key=lambda r: r.ranking, reverse=True)
+        sorted_records = sorted(report.plot_record_list, key=lambda r: r.ranking, reverse=True)
         selected = sorted_records[: self.top_n]
         logger.info(
             "Secretary: kept %d/%d records (scores: %s)",
             len(selected),
-            len(ranked_records),
+            len(report.plot_record_list),
             [round(r.ranking, 2) for r in selected],
         )
-        return selected
+        new_report = ReportRecord(report.header, report.lead, selected)
+        return new_report
 
 
 class Editor(_LLMMixin):
@@ -72,12 +73,12 @@ class Editor(_LLMMixin):
     def set_llm_image2text(self, it2t_func):
         self._llm_image2text_func = it2t_func
 
-    def compose(self, records_list: list[PlotRecord]) -> ReportRecord:
+    def compose(self, report: ReportRecord) -> ReportRecord:
         """Generate header H and lead L from the top-N records."""
-        header_prompt, lead_prompt = self._build_prompt(records_list)
+        header_prompt, lead_prompt = self._build_prompt(report.plot_record_list)
         #prepared_records = [rec.caption for rec in records_list]
         #prepared_records = prepared_records[:5] # TODO: add view
-        raw_lead = self._call_llm(lead_prompt, records_list)
+        raw_lead = self._call_llm(lead_prompt, report.plot_record_list)
         print(raw_lead)
         raw_header = self._call_llm(header_prompt, [raw_lead])
         print("raw header", raw_header)
@@ -85,7 +86,7 @@ class Editor(_LLMMixin):
         #header = self._parse_response(raw_header)
         #lead = self._parse_response(raw_lead)
         # header, lead = self._parse_response(raw)
-        return ReportRecord(raw_header, raw_lead, records_list)
+        return ReportRecord(raw_header, raw_lead, report.plot_record_list)
 
     # TODO: make something with _build_prompt: currently not in use
     def _build_prompt(self, records: list[PlotRecord]) -> str:
