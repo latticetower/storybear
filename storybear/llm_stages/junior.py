@@ -27,8 +27,10 @@ class Junior(_LLMMixin):
         "You are a junior data journalist arranging chart-caption pairs "
         "into a compelling narrative order. Return ONLY valid JSON."
     )
+    def __call__(self, report: ReportRecord) -> ReportRecord:
+        return self.arrange(report)
 
-    def arrange(self, report_record: ReportRecord) -> list[PlotRecord]:
+    def arrange(self, report_record: ReportRecord) -> ReportRecord:
         """Return the records reordered for narrative flow."""
         prompt = self._build_prompt(report_record)
         raw = self._call_llm(prompt, report_record.plot_record_list)

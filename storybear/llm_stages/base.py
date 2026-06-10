@@ -2,11 +2,12 @@
 import logging
 from pathlib import Path
 import json
+import pandas as pd
 from typing import Union, Dict, List
 
 from typing import Any
 
-from storybear.data_structures import PlotRecord
+from storybear.data_structures import PlotRecord, ReportRecord
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Shared LLM mixin
@@ -69,7 +70,10 @@ class _LLMMixin:
         raise NotImplementedError("Override _call_llm_vision() with your LLM client.")
     
     def _call_llm_image2image(self, prompt: str, image_path: Path) -> Path:
-        raise NotImplementedError("Override _call_llm_vision() with your LLM client.")
+        raise NotImplementedError("Override _call_llm_image2image() with your LLM client.")
+    
+    def __call__(self, report: ReportRecord) -> ReportRecord:
+        raise NotImplementedError("Override __call__() with your LLM client.")
 
     @staticmethod
     def _parse_json(text: Union[str, Dict]) -> Any:

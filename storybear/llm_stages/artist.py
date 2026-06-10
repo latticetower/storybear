@@ -52,6 +52,9 @@ class Artist(_LLMMixin):
         self.style_brief = style_brief or self.SYSTEM_PROMPT
         self._llm_image2image_func = None
 
+    def __call__(self, report: ReportRecord) -> ReportRecord:
+        return self.process_all(report)
+
     def _set_llm_image2image(self, i2i_func):
         self._llm_image2image_func = i2i_func
 

@@ -45,6 +45,9 @@ class Foodie(_LLMMixin):
         self.criteria = criteria or self.DEFAULT_CRITERIA
         self._llm_image2text_func = None
 
+    def __call__(self, report: ReportRecord) -> ReportRecord:
+        return self.process_all(report)
+
     def set_llm_image2text(self, it2t_func):
         self._llm_image2text_func = it2t_func
 

@@ -9,7 +9,7 @@ import pandas as pd
 from typing import List
 from collections import defaultdict
 
-from storybear.data_structures import PlotRecord
+from storybear.data_structures import PlotRecord, ReportRecord
 from .plotters.base import BasePlotter, infer_kind, ColKind
 
 
@@ -45,12 +45,12 @@ class DataGal:
     def __init__(
         self,
         csv_path: str | Path,
-        
         output_dir: str | Path | None = None,
         plotters_dir: str | Path = "datagal/plotters",
         max_arity: int = 2,
         file_format: str = "png",
     ) -> None:
+
         self.csv_path = Path(csv_path)
         self.plotters_dir = root_path / plotters_dir
         self.max_arity = max_arity
@@ -69,6 +69,8 @@ class DataGal:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+    def __call__(self) -> ReportRecord:
+        return self.run()
  
     def run(self) -> List[PlotRecord]: #dict[str, list[Path]]:
         """

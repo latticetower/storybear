@@ -38,18 +38,14 @@ class Typography:
         Width (in inches) used for all embedded plot images.
     """
 
-    def __init__(
-        self,
-        output_path: str | Path,
-        image_width_inches: float = 5.5,
-    ) -> None:
+    def __init__(self, output_path: str | Path, image_width_inches: float = 5.5) -> None:
         self.output_path = Path(output_path)
         self.image_width_inches = image_width_inches
 
-    def build(
-        self,
-        report: ReportRecord,
-    ) -> Path:
+    def __call__(self, report: ReportRecord) -> Path:
+        return self.build(report)
+
+    def build(self, report: ReportRecord) -> Path:
         """
         Write the .docx report and return its path.
 

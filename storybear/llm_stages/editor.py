@@ -31,6 +31,9 @@ class Secretary:
     def __init__(self, top_n: int = 5) -> None:
         self.top_n = top_n
 
+    def __call__(self, report: ReportRecord) -> ReportRecord:
+        return self.select(report)
+
     def select(self, report: ReportRecord) -> ReportRecord:
         """Return the top-N records sorted by ranking descending."""
         sorted_records = sorted(report.plot_record_list, key=lambda r: r.ranking, reverse=True)
@@ -69,6 +72,9 @@ class Editor(_LLMMixin):
             raise ValueError("exaggeration must be in [0, 1]")
         self.exaggeration = exaggeration
         self._llm_image2text_func = None
+
+    def __call__(self, report: ReportRecord) -> ReportRecord:
+        return self.compose(report)
 
     def set_llm_image2text(self, it2t_func):
         self._llm_image2text_func = it2t_func
