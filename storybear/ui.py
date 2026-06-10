@@ -29,7 +29,7 @@ def create_app():
                 captionist_it2t_func=it2t_summary_func,
                 foodie_it2t_func=it2t_summary_func,
                 editor_it2t_func=it2t_summary_func,
-                artist_i2i_func=flux_i2i_func,
+                # artist_i2i_func=flux_i2i_func,
             )
             run_result, docx_path = pipeline.run()
             print(run_result)

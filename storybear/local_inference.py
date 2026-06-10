@@ -1,7 +1,7 @@
 
 import torch
 from PIL import Image
-from diffusers import Flux2KleinPipeline
+
 from pathlib import Path
 from typing import Union
 from typing import List, Tuple
@@ -16,10 +16,6 @@ if torch.cuda.is_available():
 else:
     device = "cpu"
 dtype = torch.bfloat16
-
-flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", dtype=dtype).to(device)
-if device != "cpu":
-    flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
 
 
 def flux_i2i_func(prompt: str, file_path: Path):
@@ -38,6 +34,10 @@ def flux_i2i_func(prompt: str, file_path: Path):
     #    "stephenbtl/ugly-kontext-klein-4b-lora",
     #    weight_name="ugly_kontext_klein_4b_v1.safetensors",
     #)
+    from diffusers import Flux2KleinPipeline
+    flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", dtype=dtype).to(device)
+    if device != "cpu":
+        flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
 
     reference = Image.open(file_path).convert("RGB") #.resize((1024, 1024))
     img = flux_pipe(
