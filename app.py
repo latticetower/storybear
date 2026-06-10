@@ -153,6 +153,24 @@ def create_app(dummy, use_llm=False, use_vlm=False):
                             gr.Checkbox(value=False, label=f"Stage {i}: {step_name}", interactive=False)
                         )
                     clear_checkboxes_button = gr.ClearButton()
+
+        with gr.Column("Parent container") as container:
+            @gr.render(inputs=[pipeline_blocks[-1]])
+            def show_demo_view(count, request: gr.Request):
+                print(count)
+                if request.session_hash in instances:
+                    report = instances[request.session_hash]['report']
+                    with gr.Row("Header line"):
+                        blocks = [
+                            gr.Markdown(f"# {report.header}"),
+                            gr.Markdown(f"## {report.lead}"),
+                        ]
+                    for i, record in enumerate(report.plot_record_list):
+                        text = gr.Label(record.caption)
+                        im = gr.Image(record.plot_path)
+                        blocks.append(gr.Row(f"Row_{i}", [text, im]))
+            
+
         clear_checkboxes_button.click(call_clear_checkboxes, pipeline_blocks, pipeline_blocks)
         stage_processor = StageProcessor(named_stages_list)
 
@@ -162,7 +180,9 @@ def create_app(dummy, use_llm=False, use_vlm=False):
             # stage_name, stage_func = named_step_list[i+1]
             process_step = stage_processor[i+1]
             input_block.change(process_step, [input_block], [output_block])
+
         output_block.change(stage_processor.finish_job, [output_block], [status_output])
+        output_block.change(show_demo_view, [output_block], [])
 
         #stage_name, stage_func = named_step_list[0]
         restart_pipeline = stage_processor[0]
@@ -176,10 +196,6 @@ def create_app(dummy, use_llm=False, use_vlm=False):
     return demo
 
 
-named_step_list = [
-    ("add 1", lambda x: x+1),
-    ("add 2", lambda x: x+2),
-    ("multiply 2", lambda x: x*2)
-]
-demo = create_app(named_step_list)
+
+demo = create_app()
 demo.launch()
