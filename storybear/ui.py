@@ -5,10 +5,13 @@ from storybear.pipeline import StorybearPipeline
 from storybear.data import generate_data
 
 
-def create_app(use_llm=False, use_vlm=False):
-    
+def create_app(use_llm=False, use_vlm=False, remote=False):
+
+    # Choose the inference backend: remote (Modal HTTP services) or local models.
+    inference = "storybear.remote_inference" if remote else "storybear.local_inference"
+
     if use_llm:
-        from storybear.local_inference import it2t_summary_func
+        it2t_summary_func = __import__(inference, fromlist=["it2t_summary_func"]).it2t_summary_func
         captionist_it2t_func = it2t_summary_func
         foodie_it2t_func = it2t_summary_func
         editor_it2t_func = it2t_summary_func
@@ -18,7 +21,7 @@ def create_app(use_llm=False, use_vlm=False):
         editor_it2t_func = None
 
     if use_vlm:
-        from storybear.local_inference import flux_i2i_func
+        flux_i2i_func = __import__(inference, fromlist=["flux_i2i_func"]).flux_i2i_func
         artist_i2i_func = flux_i2i_func
     else:
         artist_i2i_func = None
