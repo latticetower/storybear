@@ -7,12 +7,19 @@ from storybear.data import generate_data
 
 
 def _load_backends(remote: bool):
-    """Pick the local (in-process) or remote (Modal HTTP) inference backend."""
+    """Pick the local (in-process) or remote (Modal HTTP) inference backend.
+
+    Returns (it2t_summary_func, it2t_compare_func, flux_i2i_func). The compare
+    func is Foodie's optimized pairwise call; backends without one fall back to
+    the plain summary func.
+    """
     if remote:
-        from storybear.remote_inference import flux_i2i_func, it2t_summary_func
+        from storybear import remote_inference as inf
     else:
-        from storybear.local_inference import flux_i2i_func, it2t_summary_func
-    return it2t_summary_func, flux_i2i_func
+        from storybear import local_inference as inf
+    it2t_summary_func = inf.it2t_summary_func
+    it2t_compare_func = getattr(inf, "it2t_compare_func", it2t_summary_func)
+    return it2t_summary_func, it2t_compare_func, inf.flux_i2i_func
 
 @click.command()
 @click.argument('csv', type=click.Path())
@@ -31,9 +38,9 @@ def generate_data_cli(csv):
 @click.option('--remote', is_flag=True, help="Use the Modal-hosted services instead of local models.")
 def main_cli(csv, tempdir, captionist, foodie, editor, artist, remote):
     """Processes tabular file in .csv format and saves plots to the provided directory"""
-    it2t_summary_func, flux_i2i_func = _load_backends(remote)
+    it2t_summary_func, it2t_compare_func, flux_i2i_func = _load_backends(remote)
     capt_func = it2t_summary_func if captionist else None
-    foodie_func = it2t_summary_func if foodie else None
+    foodie_func = it2t_compare_func if foodie else None
     editor_func = it2t_summary_func if editor else None
     artist_func = flux_i2i_func if artist else None
     pipeline = StorybearPipeline(

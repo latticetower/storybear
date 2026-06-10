@@ -113,6 +113,10 @@ def serve():
         "8192",
         "--gpu-memory-utilization",
         "0.90",
+        # Cache shared prefixes (system prompt + repeated chart images) across
+        # requests. Foodie compares each chart against many others, so the same
+        # image is sent repeatedly — caching skips re-encoding it every time.
+        "--enable-prefix-caching",
         # Allow several images per prompt (Foodie compares pairs of charts).
         # Recent vLLM expects a JSON value here, not key=value.
         "--limit-mm-per-prompt",

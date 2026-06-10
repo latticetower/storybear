@@ -30,7 +30,8 @@ dependencies = [
     "diffusers",
     "modal",
     "openai",
-    "requests"
+    "requests",
+    "pillow"
 ]
 
 readme = "readme.md"

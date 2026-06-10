@@ -1,6 +1,7 @@
 from pathlib import Path
 import logging
 import json
+from concurrent.futures import ThreadPoolExecutor
 from typing import List
 import numpy as np
 from storybear.llm_stages.base import _LLMMixin
@@ -41,9 +42,12 @@ class Foodie(_LLMMixin):
         "and potential reader interest"
     )
 
-    def __init__(self, criteria: str | None = None) -> None:
+    def __init__(self, criteria: str | None = None, max_workers: int = 16) -> None:
         self.criteria = criteria or self.DEFAULT_CRITERIA
         self._llm_image2text_func = None
+        # Pairwise comparisons are independent and I/O-bound against the remote
+        # VLM, so we fan them out across threads (the server batches them).
+        self.max_workers = max_workers
 
     def __call__(self, report: ReportRecord) -> ReportRecord:
         return self.process_all(report)
@@ -59,35 +63,48 @@ class Foodie(_LLMMixin):
         # ranking = self._extract_score(raw)
         return raw_ranking
 
-    def process_all(self, report: ReportRecord) -> ReportRecord:
-        """Rate every CaptionedRecord."""
-        print("Rating with Foodie")
-        plot_list: list[PlotRecord] = []
-        # report.plot_record_list
-        # report.plot_record_list
-        ranking_list = dict()
-        scores = np.zeros((len(report.plot_record_list),))
+    def _compare_pair(self, records, pair):
+        """Run one pairwise comparison; return (pair, ranking) or (pair, None)."""
+        i, j = pair
+        try:
+            return pair, self.process(records[i], records[j])
+        except Exception as exc:
+            logger.warning("Foodie: comparison (%d, %d) failed: %s", i, j, exc)
+            return pair, None
 
-        for i, first_record in enumerate(report.plot_record_list):
-            for j, second_record in enumerate(report.plot_record_list):
-                if i <= j:
-                    continue
-                logger.info("Foodie: %d/%d", i + 1, len(report.plot_record_list))
-                # plot_list.append(self.process(record))
-                ranking = self.process(first_record, second_record)
-                ranking_list[(i, j)] = ranking
-                if ranking == "FIRST":
-                    scores[i] += 1
-                elif ranking == "SECOND":
-                    scores[j] += 1
-            
-            # scores[i]
+    def process_all(self, report: ReportRecord) -> ReportRecord:
+        """Rate every CaptionedRecord via parallel pairwise comparisons."""
+        print("Rating with Foodie")
+        records = report.plot_record_list
+        n = len(records)
+        scores = np.zeros((n,))
+        ranking_list: dict = {}
+
+        # All unordered pairs (i > j).
+        pairs = [(i, j) for i in range(n) for j in range(n) if i > j]
+
+        # Fan out across threads when an LLM is wired and parallelism is allowed;
+        # otherwise fall back to a simple sequential sweep.
+        if self._llm_image2text_func is not None and self.max_workers > 1 and pairs:
+            with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
+                results = list(pool.map(lambda p: self._compare_pair(records, p), pairs))
+        else:
+            results = [self._compare_pair(records, p) for p in pairs]
+
+        for (i, j), ranking in results:
+            ranking_list[(i, j)] = ranking
+            if ranking == "FIRST":
+                scores[i] += 1
+            elif ranking == "SECOND":
+                scores[j] += 1
+
         print(scores)
         print(ranking_list)
+        plot_list: list[PlotRecord] = []
         sorted_index = np.argsort(scores)
         for i in sorted_index[::-1]:
-            record = report.plot_record_list[i]
-            new_record = PlotRecord.from_record(record, ranking=scores[i]/len(scores))
+            record = records[i]
+            new_record = PlotRecord.from_record(record, ranking=scores[i] / len(scores))
             plot_list.append(new_record)
 
         new_report = ReportRecord(report.header, report.lead, plot_list)

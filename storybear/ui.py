@@ -11,9 +11,13 @@ def create_app(use_llm=False, use_vlm=False, remote=False):
     inference = "storybear.remote_inference" if remote else "storybear.local_inference"
 
     if use_llm:
-        it2t_summary_func = __import__(inference, fromlist=["it2t_summary_func"]).it2t_summary_func
+        import importlib
+        inf = importlib.import_module(inference)
+        it2t_summary_func = inf.it2t_summary_func
+        # Foodie uses the optimized pairwise compare call when the backend has one.
+        it2t_compare_func = getattr(inf, "it2t_compare_func", it2t_summary_func)
         captionist_it2t_func = it2t_summary_func
-        foodie_it2t_func = it2t_summary_func
+        foodie_it2t_func = it2t_compare_func
         editor_it2t_func = it2t_summary_func
     else:
         captionist_it2t_func = None
@@ -21,7 +25,8 @@ def create_app(use_llm=False, use_vlm=False, remote=False):
         editor_it2t_func = None
 
     if use_vlm:
-        flux_i2i_func = __import__(inference, fromlist=["flux_i2i_func"]).flux_i2i_func
+        import importlib
+        flux_i2i_func = importlib.import_module(inference).flux_i2i_func
         artist_i2i_func = flux_i2i_func
     else:
         artist_i2i_func = None

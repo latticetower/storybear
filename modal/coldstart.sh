@@ -84,10 +84,12 @@ echo "  llamacpp = $LLAMACPP_URL"
 echo "  flux     = $FLUX_URL"
 echo
 
-# Both VLMs are OpenAI-compatible (/v1/models). FLUX is a FastAPI app (/docs).
-wait_for "vllm"     "$VLLM_URL/v1/models"     & pid_vllm=$!
-wait_for "llamacpp" "$LLAMACPP_URL/v1/models" & pid_llamacpp=$!
-wait_for "flux"     "$FLUX_URL/docs"          & pid_flux=$!
+# Both VLMs expose /health, which returns 200 only once the model is fully
+# loaded (/v1/models can answer earlier, while the model is still loading).
+# FLUX is a FastAPI app, probed via /docs.
+wait_for "vllm"     "$VLLM_URL/health"     & pid_vllm=$!
+wait_for "llamacpp" "$LLAMACPP_URL/health" & pid_llamacpp=$!
+wait_for "flux"     "$FLUX_URL/docs"       & pid_flux=$!
 
 rc=0
 wait "$pid_vllm"     || rc=1
