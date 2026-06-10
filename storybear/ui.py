@@ -4,10 +4,26 @@ from pathlib import Path
 from storybear.pipeline import StorybearPipeline
 from storybear.data import generate_data
 
-from storybear.local_inference import flux_i2i_func, it2t_summary_func
+
+def create_app(use_llm=False, use_vlm=False):
+    
+    if use_llm:
+        from storybear.local_inference import it2t_summary_func
+        captionist_it2t_func = it2t_summary_func
+        foodie_it2t_func = it2t_summary_func
+        editor_it2t_func = it2t_summary_func
+    else:
+        captionist_it2t_func = None
+        foodie_it2t_func = None
+        editor_it2t_func = None
+
+    if use_vlm:
+        from storybear.local_inference import flux_i2i_func
+        artist_i2i_func = flux_i2i_func
+    else:
+        artist_i2i_func = None
 
 
-def create_app():
     with gr.Blocks(title="storybear") as demo:
         num_plots = gr.State(0)
         
@@ -26,10 +42,10 @@ def create_app():
             pipeline = StorybearPipeline(
                 csv, 
                 tempdir, 
-                captionist_it2t_func=it2t_summary_func,
-                foodie_it2t_func=it2t_summary_func,
-                editor_it2t_func=it2t_summary_func,
-                # artist_i2i_func=flux_i2i_func,
+                captionist_it2t_func=captionist_it2t_func,
+                foodie_it2t_func=foodie_it2t_func,
+                editor_it2t_func=editor_it2t_func,
+                artist_i2i_func=artist_i2i_func,
             )
             run_result, docx_path = pipeline.run()
             print(run_result)
