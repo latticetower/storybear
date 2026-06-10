@@ -31,7 +31,7 @@ the instance via the `stages` parameter::
 """
 
 from __future__ import annotations
-from typing import Tuple
+from typing import Tuple, List, Union
 import logging
 import tempfile
 from pathlib import Path
@@ -44,8 +44,10 @@ from storybear.llm_stages import (
     Editor,
     Foodie,
     Junior,
-    Secretary,
+    Secretary,    
 )
+from storybear.llm_stages.base import _LLMMixin
+
 from storybear.typography import Typography
 
 logger = logging.getLogger(__name__)
@@ -81,7 +83,7 @@ class StorybearPipeline:
 
     def __init__(
         self,
-        csv_path: str | Path,
+        csv_path: str | Path = None,
         # plotters_dir: str | Path,
         output_dir: str | Path | None = None,
         top_n: int = 5,
@@ -94,7 +96,8 @@ class StorybearPipeline:
         editor_it2t_func=None,
         artist_i2i_func=None,
     ) -> None:
-        self.csv_path = Path(csv_path)
+        
+        self.csv_path = Path(csv_path) if csv_path is not None else csv_path
         # self.plotters_dir = Path(plotters_dir)
         self.max_arity = max_arity
         self.top_n = top_n
@@ -142,10 +145,22 @@ class StorybearPipeline:
                 image_width_inches=self.image_width_inches,
             ),
         )
+    
 
     # ------------------------------------------------------------------
     # Main entry point
     # ------------------------------------------------------------------
+    def get_stages(self) -> List[Tuple[str, Union[DataGal, _LLMMixin, Typography]]]:
+        return [
+            ('DataGal', self._datagal),
+            ('Captionist', self._captionist),
+            ('Foodie', self._foodie),
+            ('Secretary', self._secretary),
+            ('Editor', self._editor),
+            ('Junior', self._junior),
+            ('Artist', self._artist),
+        ]
+        pass
 
     def run(self) -> Tuple[ReportRecord, Path]:
         """

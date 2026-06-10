@@ -44,14 +44,14 @@ class DataGal:
  
     def __init__(
         self,
-        csv_path: str | Path,
+        csv_path: str | Path | None = None,
         output_dir: str | Path | None = None,
         plotters_dir: str | Path = "datagal/plotters",
         max_arity: int = 2,
         file_format: str = "png",
     ) -> None:
 
-        self.csv_path = Path(csv_path)
+        self.csv_path = Path(csv_path) if csv_path is not None else csv_path
         self.plotters_dir = root_path / plotters_dir
         self.max_arity = max_arity
         self.file_format = file_format
@@ -69,8 +69,17 @@ class DataGal:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def __call__(self) -> ReportRecord:
-        return self.run()
+    def __call__(self, df: pd.DataFrame) -> ReportRecord:
+        self._data = df
+        self._load_plotters()
+        plotter_class2paths = self._generate_plots()
+        all_records = []
+        for plotter_class_name, path_list in plotter_class2paths.items():
+            for plot_path, columns, stats in path_list:
+                record = PlotRecord(plot_path, columns, plotter_class_name, stats)
+                all_records.append(record)
+        report = ReportRecord("", "", all_records)
+        return report
  
     def run(self) -> List[PlotRecord]: #dict[str, list[Path]]:
         """
@@ -96,6 +105,9 @@ class DataGal:
     # ------------------------------------------------------------------
  
     def _load_data(self) -> None:
+        if self.csv_path is None:
+            logger.info("DataGal, _load_data: csv_path is None, do nothing")
+            return
         logger.info("Loading CSV: %s", self.csv_path)
         self._data = pd.read_csv(self.csv_path)
         logger.info(
