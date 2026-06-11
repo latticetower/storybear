@@ -58,17 +58,20 @@ The names of the classes representing each particular part of the pipeline are s
 8. The last class is `Typography` - it collects the data from the previous step and converts the report (for simplicity, made with `python-docx` package).
 
 ## TODO & ideas
-- [ ] add other methods of reporting, i.e., probably replace docx with pdf generation or even make video (slides with generated images+tts)
+- [ ] add other methods of reporting, i.e., probably replace docx with pdf generation or even make video (slides with generated images+tts)  
 - [ ] Remove columns with "_id", "Id" and "identifier" from the consideration
-- [ ] add default text gen (both with and without LLMs)
+- [ ] add default text gen (both with and without LLMs, no data)
 - [ ] remove very similar plots based on their descriptions
 - [ ] don't build plots for the highly correlated columns
-- [ ] For string columns: draw length distributions
+- [x] For string columns: draw length distributions
 - [ ] Proteins: compute embeddings with esm2 8m + draw scatterplots
 - [ ] SMILES: chemberta | mol descriptors
 
 ## References
-TBA
+1. https://github.com/py-pdf/fpdf2 candidate package for report creation
+2. https://arxiv.org/abs/2605.14163 possible candidate method for pipeline inprovement
+3. https://arxiv.org/abs/2508.16757 paper on reranking strategies. I use basic and slow approach at the moment - pair reranking of plot descriptions, scoring based on this reranking, selection of top N plots (N=5).
+
 
 ## Our Team
 
