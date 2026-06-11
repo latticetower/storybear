@@ -140,20 +140,24 @@ def create_app(use_llm=False, use_vlm=False):
     pipeline_blocks = []
     
     with gr.Blocks(title="storybear") as demo:
-        gr.Markdown("## Test stateful pipeline")
-        gr.Markdown("Click the button below to launch:")
+        gr.Markdown("## STORYBEAR: from science to fairytale via agent-assisted storytelling")
         status_output = gr.Textbox(label="Status")
         
         # demo_button.click(click_demo, [], pipeline_blocks[0])
         with gr.Row("Parent container"):
             with gr.Column():
                 df_hf_path = gr.Textbox(label="Select data table", lines=3, value=DATA_EXAMPLES[0])
-                demo_button = gr.Button("Use demo csv file")
+                demo_button = gr.Button("Click the button to launch on demo dataset")
                 gr.Examples(DATA_EXAMPLES, df_hf_path, label="Select dataset")
                 
             with gr.Column():
-                with gr.Accordion("See Details"):
-                    gr.Markdown("zero")
+                with gr.Accordion("Pipeline status dashboard"):
+                    gr.Markdown((
+                        "Each of the checkboxes correspond to one of the pipeline stages. "
+                        "The checkbox is checked when the stage is finished."
+                        "Current stage is executed with the progress bar. \n"
+                        "To rerun the pipeline, first click on 'Clear button' below"
+                    ))
                     for i, (step_name, step_func) in enumerate(named_stages_list):
                         # for i in range(num_steps):
                         pipeline_blocks.append(
