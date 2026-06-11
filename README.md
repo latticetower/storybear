@@ -64,8 +64,14 @@ The names of the classes representing each particular part of the pipeline are s
 - [ ] remove very similar plots based on their descriptions
 - [ ] don't build plots for the highly correlated columns
 - [x] For string columns: draw length distributions
-- [ ] Proteins: compute embeddings with esm2 8m + draw scatterplots
-- [ ] SMILES: chemberta | mol descriptors
+- [x] Proteins: compute embeddings with esm2 8m + draw scatterplots
+- [x] Proteins: add color
+- [x] SMILES: chemberta
+- [ ] SMILES: mol descriptors
+- [ ] add some sort of log to be able to understand why some of the columns were not processed
+- [ ] add example with smiles and/or RNA/DNA
+- [ ] use pypalettes for consistent coloring
+- [ ] add new types of columns
 
 ## References
 1. https://github.com/py-pdf/fpdf2 candidate package for report creation

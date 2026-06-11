@@ -29,7 +29,9 @@ dependencies = [
     "accelerate",
     "diffusers",
     "sentence_transformers",
-    "umap-learn"
+    "umap-learn",
+    "partialsmiles",
+    "pypalettes"
 ]
 
 readme = "readme.md"

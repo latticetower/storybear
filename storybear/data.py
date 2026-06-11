@@ -12,5 +12,5 @@ def download_example_data(csv, i=0):
     ]
     i = i % len(EXAMPLES)
     # df = pd.read_csv("")
-    df = pd.read_csv(EXAMPLES[i]])
+    df = pd.read_csv(EXAMPLES[i])
     df.to_csv(csv, index=None)

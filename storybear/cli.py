@@ -9,7 +9,7 @@ from storybear.data import generate_data, download_example_data
 
 @click.command()
 @click.argument('csv', type=click.Path())
-@click.argument('--i', default=0, type=int)
+@click.option('--i', default=0, type=int)
 def generate_data_cli(csv, i):
     # we can generate the data, but for simplicity let's start with something I already have and know, yet more complex
     download_example_data(csv, i)

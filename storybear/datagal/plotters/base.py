@@ -29,6 +29,7 @@ import logging
 from typing import Union, Dict
 # import sys
 # import tempfile
+from pathlib import Path
 from abc import ABC, abstractmethod
 # from pathlib import Path
 from typing import ClassVar, Literal
@@ -141,6 +142,9 @@ class BasePlotter(ABC):
             A dictionary with key-value pairs, representing the named parameters of plots with their values. 
             Returns None if there is nothing worth drawing present in the dataset.
         """
+
+    def set_output_dir(self, output_dir: Path):
+        self.output_dir = output_dir
 
 
  

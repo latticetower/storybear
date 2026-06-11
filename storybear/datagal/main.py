@@ -211,6 +211,7 @@ class DataGal:
         assert self._data is not None
  
         plotter = plotter_cls()
+        plotter.set_output_dir(self.output_dir)
         cols_slug = "_".join(columns)
         filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
         save_path = self.output_dir / filename
