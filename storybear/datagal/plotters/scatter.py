@@ -4,7 +4,7 @@ Example plotter: Scatter plot for two numeric columns.
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from typing import Union, Dict
+from typing import Union, Dict, List
 from storybear.datagal.plotters.base import BasePlotter
 
 
@@ -12,29 +12,37 @@ class ScatterPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("numeric",), ("numeric",))
 
-    def plot(self, data, columns):
+    def plot(self, data, columns, cmap=None):
         x_col, y_col = columns
         fig, ax = plt.subplots()
         subset = data[[x_col, y_col]].dropna()
-        ax.scatter(subset[x_col], subset[y_col], alpha=0.5, s=20)
+        ax.scatter(subset[x_col], subset[y_col], alpha=0.5, s=20, cmap=cmap)
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
         ax.set_title(f"{x_col} vs {y_col}")
         return fig
-
-    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+    
+    def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 2:
-            return None
+            return False
         x_col, y_col = columns
         if not x_col in data.columns or not y_col in data.columns:
-            return None
+            return False
         subset = data[[x_col, y_col]].dropna()
         if len(subset) < 2:
-            return None
+            return False
         if len(subset[x_col].unique()) < 5:
-            return None
+            return False
         if len(subset[y_col].unique()) < 5:
+            return False
+        return True
+
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+        if not self.is_applicable(data, columns):
             return None
+        x_col, y_col = columns
+        subset = data[[x_col, y_col]].dropna()
+
         stat_info = dict()
         stat_info["Number of points"] = len(subset)
         stat_info[f"Mean of {x_col} values"] = subset[x_col].mean()
@@ -50,7 +58,7 @@ class BoxPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("categorical",), ("numeric",))
 
-    def plot(self, data, columns):
+    def plot(self, data, columns, cmap=None):
         cat_col, num_col = columns
         fig, ax = plt.subplots()
         groups = [
@@ -59,7 +67,7 @@ class BoxPlotter(BasePlotter):
         ]
         labels = data[cat_col].dropna().unique().tolist()
         try:    
-            ax.boxplot(groups, labels=labels)
+            ax.boxplot(groups, labels=labels, cmap=cmap)
             ax.set_xlabel(cat_col)
             ax.set_ylabel(num_col)
             ax.set_title(f"{num_col} by {cat_col}")
@@ -68,15 +76,23 @@ class BoxPlotter(BasePlotter):
             return None
         return fig
 
-    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+    def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 2:
-            return None
+            return False
         cat_col, num_col = columns
         if not cat_col in data.columns or not num_col in data.columns:
-            return None
+            return False
         subset = data[[cat_col, num_col]].dropna()
         if len(subset) < 2:
+            return False
+        return True
+
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+        if not self.is_applicable(data, columns):
             return None
+        cat_col, num_col = columns
+        subset = data[[cat_col, num_col]].dropna()
+
         stat_info = dict()
         stat_info["Number of points"] = len(subset)
         stat_info[f"Number of unique {cat_col} values"] = len(subset[cat_col].unique())

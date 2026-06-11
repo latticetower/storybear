@@ -47,7 +47,7 @@ class BasicEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns):
+    def plot(self, data, columns, cmap=None):
         # print("plot called", columns)
         column = columns[0]
         fig, ax = plt.subplots()
@@ -60,7 +60,7 @@ class BasicEmbeddingPlotter(BasePlotter):
         x_values = emb2d[:, 0]
         y_values = emb2d[:, 1]
 
-        ax.scatter(x_values, y_values, alpha=0.5, s=20)
+        ax.scatter(x_values, y_values, alpha=0.5, s=20, cmap=cmap)
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
         ax.set_title(f"Embedding space of {column}, built with {self.model_name}")
@@ -218,7 +218,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns):
+    def plot(self, data, columns, cmap=None):
         # print("plot called", columns)
         x_column, y_column = columns
         fig, ax = plt.subplots()
@@ -231,7 +231,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         emb2d = self.get_dim_reduction(embeddings)
         x_values = emb2d[:, 0]
         y_values = emb2d[:, 1]
-        sns.scatterplot(x=x_values, y=y_values, hue=hue_values, alpha=0.5, s=20, ax=ax, legend=False)
+        sns.scatterplot(x=x_values, y=y_values, hue=hue_values, alpha=0.5, s=20, ax=ax, legend=False, cmap=cmap)
         # print("11", emb2d.shape)
         
 

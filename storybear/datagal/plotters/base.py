@@ -26,7 +26,7 @@ from __future__ import annotations
 import inspect
 # import itertools
 import logging
-from typing import Union, Dict
+from typing import Union, Dict, List
 # import sys
 # import tempfile
 from pathlib import Path
@@ -129,7 +129,7 @@ class BasePlotter(ABC):
     # ------------------------------------------------------------------
  
     @abstractmethod
-    def plot(self, data: pd.DataFrame, columns: list[str]):
+    def plot(self, data: pd.DataFrame, columns: list[str], cmap = None):
         """
         Produce and return a matplotlib Figure for *columns* in *data*.
  
@@ -165,6 +165,24 @@ class BasePlotter(ABC):
         dict
             A dictionary with key-value pairs, representing the named parameters of plots with their values. 
             Returns None if there is nothing worth drawing present in the dataset.
+        """
+    @abstractmethod
+    def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
+        """
+        Check if the *data* contents of the *columns* can be used to plot specific type of plot
+        
+        Parameters
+        ----------
+        data:
+            The full DataFrame (already loaded, with nulls present as-is).
+        columns:
+            The column names this plotter should visualise.  Their order
+            matches `accepted_kinds`.
+ 
+        Returns
+        -------
+        bool
+            True or False, depending if the data can be used to create the specific type of plots
         """
 
     def set_output_dir(self, output_dir: Path):
