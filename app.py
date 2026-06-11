@@ -194,7 +194,7 @@ def create_app(use_llm=False, use_vlm=False):
         #stage_name, stage_func = named_step_list[0]
         restart_pipeline = stage_processor[0]
         #restart_pipeline = StageProcessor(stage_name, stage_func).restart_pipeline
-        demo_button.click(restart_pipeline, [df_hf_path], [pipeline_blocks[0]])
+        demo_button.click(restart_pipeline, [], [pipeline_blocks[0]])
 
         demo.load(initialize_instance, inputs=None, outputs=status_output)    
         # Clean up instance when page is closed/refreshed
