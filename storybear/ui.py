@@ -4,7 +4,7 @@ from pathlib import Path
 from time import sleep
 import numpy as np
 
-from storybear.data import generate_data
+from storybear.data import download_example_data
 from storybear.data_structures import ReportRecord, PlotRecord
 from storybear.pipeline import StorybearPipeline
 
@@ -21,7 +21,7 @@ def initialize_instance(request: gr.Request):
     tempdir = Path("temp")
     tempdir.mkdir(exist_ok=True)
     csv = tempdir / "smth.csv"
-    generate_data(csv)
+    download_example_data(csv)
     df = pd.read_csv(csv)
     instances[request.session_hash] = {'data_frame': df, 'report': None}
     return "Session initialized!"

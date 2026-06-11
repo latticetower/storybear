@@ -5,13 +5,14 @@ import click
 from storybear.local_inference import flux_i2i_func, it2t_summary_func
 
 from storybear.pipeline import StorybearPipeline
-from storybear.data import generate_data
+from storybear.data import generate_data, download_example_data
 
 @click.command()
 @click.argument('csv', type=click.Path())
-def generate_data_cli(csv):
+@click.argument('--i', default=0, type=int)
+def generate_data_cli(csv, i):
     # we can generate the data, but for simplicity let's start with something I already have and know, yet more complex
-    generate_data(csv)
+    download_example_data(csv, i)
 
 
 @click.command()

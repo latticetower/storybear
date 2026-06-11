@@ -27,7 +27,9 @@ dependencies = [
     "transformers>=5.6,<6",
     "torch>=2.11",
     "accelerate",
-    "diffusers"
+    "diffusers",
+    "sentence_transformers",
+    "umap-learn"
 ]
 
 readme = "readme.md"
