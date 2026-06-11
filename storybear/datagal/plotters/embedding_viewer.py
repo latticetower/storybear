@@ -38,7 +38,8 @@ class BasicEmbeddingPlotter(BasePlotter):
             with np.load(npz_path) as npz_data:
                 if 'embeddings' in npz_data.keys():
                     embeddings = npz_data['embeddings']
-            return embeddings
+                if len(embeddings) == len(seq_list):
+                    return embeddings
 
         from sentence_transformers import SentenceTransformer
         model = SentenceTransformer(self.model_name)
@@ -209,7 +210,9 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
             with np.load(npz_path) as npz_data:
                 if 'embeddings' in npz_data.keys():
                     embeddings = npz_data['embeddings']
-            return embeddings
+                if len(embeddings) == len(seq_list):
+                    return embeddings
+                print(embeddings.shape, len(seq_list))
 
         from sentence_transformers import SentenceTransformer
         model = SentenceTransformer(self.model_name)
@@ -225,7 +228,17 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         subset = data[[x_column, y_column]].dropna()
         text_values = subset.values[:, 0]
         hue_values = subset.values[:, 1]
-        embeddings = self.embeddings_method(x_column, text_values)
+
+        seq_list = data[x_column].dropna().values.flatten()
+
+        # print("plot", len(seq_list), len(text_values))
+        embeddings = self.embeddings_method(x_column, seq_list)
+        if len(seq_list) != len(text_values):
+            seq2embedding = {seq: emb for seq, emb in zip(seq_list, embeddings)}
+            embeddings = np.stack([seq2embedding[x] for x in text_values])
+            assert embeddings.shape[0] == len(text_values)
+        
+        # embeddings = self.embeddings_method(x_column, text_values)
         # print(embeddings.shape)
 
         emb2d = self.get_dim_reduction(embeddings)
@@ -233,7 +246,6 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         y_values = emb2d[:, 1]
         sns.scatterplot(x=x_values, y=y_values, hue=hue_values, alpha=0.5, s=20, ax=ax, legend=False, cmap=cmap)
         # print("11", emb2d.shape)
-        
 
         # ax.scatter(x_values, y_values, c=hue_values, alpha=0.5, s=20)
         ax.set_xlabel("PCA 1")

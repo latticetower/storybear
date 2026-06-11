@@ -5,6 +5,8 @@ Example plotter: Scatter plot for two numeric columns.
 import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Union, Dict, List
+import seaborn as sns
+import numpy as np
 from storybear.datagal.plotters.base import BasePlotter
 
 
@@ -60,18 +62,21 @@ class BoxPlotter(BasePlotter):
 
     def plot(self, data, columns, cmap=None):
         cat_col, num_col = columns
+        subset = data[[cat_col, num_col]].dropna()
         fig, ax = plt.subplots()
         groups = [
             grp[num_col].dropna().values
-            for _, grp in data.groupby(cat_col)
+            for _, grp in subset.groupby(cat_col)
         ]
         labels = data[cat_col].dropna().unique().tolist()
-        try:    
-            ax.boxplot(groups, labels=labels, cmap=cmap)
+        try:
+            print(groups)
+            ax.boxplot(groups, labels=labels)
             ax.set_xlabel(cat_col)
             ax.set_ylabel(num_col)
             ax.set_title(f"{num_col} by {cat_col}")
         except Exception as e:
+            print("BoxPlot", e)
             plt.close(fig)
             return None
         return fig
@@ -83,6 +88,8 @@ class BoxPlotter(BasePlotter):
         if not cat_col in data.columns or not num_col in data.columns:
             return False
         subset = data[[cat_col, num_col]].dropna()
+        if np.all(subset[num_col].apply(pd.api.types.is_bool)):
+            return False
         if len(subset) < 2:
             return False
         return True

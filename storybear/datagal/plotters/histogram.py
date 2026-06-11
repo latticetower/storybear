@@ -36,6 +36,8 @@ class HistogramPlotter(BasePlotter):
         values = data[col].dropna()
         if len(values) < 2:
             return False
+        if np.all(values.apply(pd.api.types.is_bool)):
+            return False
         return True
 
     def compute_statistics(self, data: pd.DataFrame, columns: List[str]) -> Union[Dict, None]: 
