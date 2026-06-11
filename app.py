@@ -12,6 +12,10 @@ from storybear.data import generate_data
 from storybear.data_structures import ReportRecord, PlotRecord
 from storybear.pipeline import StorybearPipeline
 
+DATA_EXAMPLES = [
+    ["hf://datasets/phihung/titanic/train.csv"],
+    ["hf://datasets/latticetower/nrps_modules_asdb4.0/nrps_modules_info_cleaned.csv"]
+]
 
 
 instances = {}
@@ -106,7 +110,7 @@ class StageProcessor:
 
 
 
-def create_app(dummy, use_llm=False, use_vlm=False):
+def create_app(use_llm=False, use_vlm=False):
     if use_llm:
         from storybear.local_inference import it2t_summary_func
         captionist_it2t_func = it2t_summary_func
@@ -122,6 +126,7 @@ def create_app(dummy, use_llm=False, use_vlm=False):
         artist_i2i_func = flux_i2i_func
     else:
         artist_i2i_func = None
+
     pipeline = StorybearPipeline(
         captionist_it2t_func=captionist_it2t_func,
         foodie_it2t_func=foodie_it2t_func,
@@ -142,7 +147,9 @@ def create_app(dummy, use_llm=False, use_vlm=False):
         # demo_button.click(click_demo, [], pipeline_blocks[0])
         with gr.Row("Parent container"):
             with gr.Column():
+                df_hf_path = gr.Textbox(label="Select data table", lines=3, value=DATA_EXAMPLES[0])
                 demo_button = gr.Button("Use demo csv file")
+                gr.Examples(DATA_EXAMPLES, df_hf_path, label="Select dataset")
                 
             with gr.Column():
                 with gr.Accordion("See Details"):
@@ -187,7 +194,7 @@ def create_app(dummy, use_llm=False, use_vlm=False):
         #stage_name, stage_func = named_step_list[0]
         restart_pipeline = stage_processor[0]
         #restart_pipeline = StageProcessor(stage_name, stage_func).restart_pipeline
-        demo_button.click(restart_pipeline, [], [pipeline_blocks[0]])
+        demo_button.click(restart_pipeline, [df_hf_path], [pipeline_blocks[0]])
 
         demo.load(initialize_instance, inputs=None, outputs=status_output)    
         # Clean up instance when page is closed/refreshed
