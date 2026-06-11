@@ -59,7 +59,13 @@ The names of the classes representing each particular part of the pipeline are s
 
 ## TODO & ideas
 - [ ] add other methods of reporting, i.e., probably replace docx with pdf generation or even make video (slides with generated images+tts)
-- [ ] 
+- [ ] Remove columns with "_id", "Id" and "identifier" from the consideration
+- [ ] add default text gen (both with and without LLMs)
+- [ ] remove very similar plots based on their descriptions
+- [ ] don't build plots for the highly correlated columns
+- [ ] For string columns: draw length distributions
+- [ ] Proteins: compute embeddings with esm2 8m + draw scatterplots
+- [ ] SMILES: chemberta | mol descriptors
 
 ## References
 TBA
