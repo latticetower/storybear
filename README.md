@@ -71,7 +71,7 @@ The names of the classes representing each particular part of the pipeline are s
 - [ ] add some sort of log to be able to understand why some of the columns were not processed
 - [ ] add example with smiles and/or RNA/DNA
 - [ ] use pypalettes for consistent coloring
-- [ ] add new types of columns
+- [x] add new types of columns
 
 ## References
 1. https://github.com/py-pdf/fpdf2 candidate package for report creation

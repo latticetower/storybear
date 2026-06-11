@@ -33,29 +33,53 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 # from pathlib import Path
 from typing import ClassVar, Literal
- 
+import numpy as np
+import re
+
 import pandas as pd
- 
+from storybear.utils import is_valid_smiles
+
+
 logger = logging.getLogger(__name__)
  
 # ---------------------------------------------------------------------------
 # Column-type taxonomy
 # ---------------------------------------------------------------------------
  
-ColKind = Literal["numeric", "categorical", "text", "datetime", "unknown"]
- 
- 
+ColKind = Literal["numeric", "categorical", "text", "datetime", "protein", "dna", "smiles", "unknown"]
+# protein, dna and smiles are special types of text column
+
+PROT_REGEX = re.compile('[ACDEFGHIKLMNPQRSTVWYXBZJ]+') 
+DNA_REGEX = re.compile('[ACGTU]+')
+
+
+# TODO: needs smarter categorical definition
 def infer_kind(series: pd.Series) -> ColKind:
     """Map a pandas Series to one of the high-level ColKind labels."""
     if pd.api.types.is_numeric_dtype(series):
         return "numeric"
     if pd.api.types.is_datetime64_any_dtype(series):
         return "datetime"
-    if pd.api.types.is_categorical_dtype(series) or (
-        series.dtype == object and series.nunique(dropna=True) / max(len(series), 1) < 0.5
-    ):
+
+    if pd.api.types.is_categorical_dtype(series):
         return "categorical"
+    if series.dtype == object and series.nunique(dropna=True) / max(len(series), 1) < 0.5:
+        return "categorical"    
+    
     if series.dtype == object:
+        texts = series.dropna()
+        texts = [x.strip() for x in texts]
+        dna_like = np.all([DNA_REGEX.match(x) is not None for x in texts if len(x) > 0])
+        if dna_like:
+            return 'dna'
+        protein_like = np.all([PROT_REGEX.match(x) is not None for x in texts if len(x) > 0])
+        if protein_like:
+            return 'protein'
+
+        smiles_like = np.all([is_valid_smiles(x) for x in texts])
+        if smiles_like:
+            return 'smiles'
+
         return "text"
     return "unknown"
 

@@ -105,6 +105,8 @@ class BasicEmbeddingPlotter(BasePlotter):
     
 
 class ProteinEmbeddingPlotter(BasicEmbeddingPlotter):
+    accepted_kinds = (("protein",))
+
     PROT_REGEX = re.compile('[ACDEFGHIKLMNPQRSTVWYXBZJ]+') 
     # TODO: Needs fixing. This is a simple, yet problematic. 
     # i.e., I don't explicitly check at the moment if the string is RNA or protein or anything else
@@ -131,7 +133,9 @@ class ProteinEmbeddingPlotter(BasicEmbeddingPlotter):
 
 
 class DNAEmbeddingPlotter(BasicEmbeddingPlotter):
-    DNA_REGEX = re.compile('[ACGTU]+') 
+    accepted_kinds = (("dna",))
+
+    DNA_REGEX = re.compile('[ACGTU]+')
     # TODO: Needs fixing. This is a simple, yet problematic. 
     # i.e., I don't explicitly check at the moment if the string is RNA or protein or anything else
 
@@ -156,6 +160,7 @@ class DNAEmbeddingPlotter(BasicEmbeddingPlotter):
 
 
 class ChemEmbeddingPlotter(BasicEmbeddingPlotter):
+    accepted_kinds = (("smiles",))
 
     def __init__(self):
         self.embeddings_method = self.compute_embeddings
@@ -276,6 +281,8 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
     
 
 class ColoredProteinEmbeddingPlotter(BasicColoredEmbeddingPlotter):
+    accepted_kinds = (("protein", 'categorical'))
+
     PROT_REGEX = re.compile('[ACDEFGHIKLMNPQRSTVWYXBZJ]+') 
     # TODO: Needs fixing. This is a simple, yet problematic. 
     # i.e., I don't explicitly check at the moment if the string is RNA or protein or anything else
@@ -304,6 +311,7 @@ class ColoredProteinEmbeddingPlotter(BasicColoredEmbeddingPlotter):
 
 
 class ColoredDNAEmbeddingPlotter(BasicColoredEmbeddingPlotter):
+    accepted_kinds = (("dna", 'categorical'))
     DNA_REGEX = re.compile('[ACGTU]+') 
     # TODO: Needs fixing. This is a simple, yet problematic. 
     # i.e., I don't explicitly check at the moment if the string is RNA or protein or anything else
@@ -329,6 +337,7 @@ class ColoredDNAEmbeddingPlotter(BasicColoredEmbeddingPlotter):
 
 
 class ColoredChemEmbeddingPlotter(BasicColoredEmbeddingPlotter):
+    accepted_kinds = (("smiles", 'categorical'))
 
     def __init__(self):
         self.embeddings_method = self.compute_embeddings
