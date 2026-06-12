@@ -7,6 +7,7 @@ from storybear.data_structures import (
     ReportRecord,
     PlotRecord,
 )
+from storybear.typography.base import BasicPrinter
 
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # TODO: fix records
 
-class DocxPrinter:
+class DocxPrinter(BasicPrinter):
     """
     Step 9 — Assembles the final .docx report.
 
@@ -38,8 +39,12 @@ class DocxPrinter:
         Width (in inches) used for all embedded plot images.
     """
 
-    def __init__(self, output_path: str | Path, image_width_inches: float = 5.5) -> None:
-        self.output_path = Path(output_path)
+    def __init__(self, name:str, output_dir: str | Path, image_width_inches: float = 5.5) -> None:
+        if len(name):
+            name = "report"
+        self.name = name
+        self.output_dir = Path(output_dir)
+        self.output_path = self.output_dir / f"{name}.docx"
         self.image_width_inches = image_width_inches
 
     def __call__(self, report: ReportRecord) -> Path:

@@ -31,7 +31,8 @@ dependencies = [
     "sentence_transformers",
     "umap-learn",
     "partialsmiles",
-    "pypalettes"
+    "pypalettes",
+    "fpdf2"
 ]
 
 readme = "readme.md"

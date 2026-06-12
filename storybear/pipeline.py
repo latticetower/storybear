@@ -48,7 +48,7 @@ from storybear.llm_stages import (
 )
 from storybear.llm_stages.base import _LLMMixin
 
-from storybear.typography import Typography
+from storybear.typography import get_printer, BasicPrinter
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,7 @@ class StorybearPipeline:
         foodie_it2t_func=None,
         editor_it2t_func=None,
         artist_i2i_func=None,
+        output_format="pdf"
     ) -> None:
         
         self.csv_path = Path(csv_path) if csv_path is not None else csv_path
@@ -138,12 +139,18 @@ class StorybearPipeline:
         if artist_i2i_func is not None:
             self._artist._set_llm_image2image(artist_i2i_func)
 
-        self._typography: Typography = s.get(
+        self._typography: BasicPrinter = s.get(
             "typography",
-            Typography(
-                output_path=self.report_dir / "report.docx",
-                image_width_inches=self.image_width_inches,
-            ),
+            get_printer(
+                output_format,
+                name="report",
+                output_dir=self.report_dir,
+                image_width_inches=self.image_width_inches
+            )
+            # Typography(
+            #     output_path=self.report_dir / "report.docx",
+            #     image_width_inches=self.image_width_inches,
+            # ),
         )
     
 

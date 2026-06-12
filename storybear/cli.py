@@ -25,7 +25,8 @@ def generate_data_cli(csv, i):
 @click.option('--editor', is_flag=True)
 @click.option('--artist', is_flag=True)
 @click.option('--show-warnings', is_flag=True)
-def main_cli(csv, tempdir, captionist, foodie, editor, artist, show_warnings):
+@click.option('--format', default='pdf')
+def main_cli(csv, tempdir, captionist, foodie, editor, artist, show_warnings, format="pdf"):
     """Processes tabular file in .csv format and saves plots to the provided directory"""
     #if not sys.warnoptions:
     warnings.simplefilter("default" if show_warnings else "ignore")
@@ -41,6 +42,7 @@ def main_cli(csv, tempdir, captionist, foodie, editor, artist, show_warnings):
         foodie_it2t_func=foodie_func,
         editor_it2t_func=editor_func,
         artist_i2i_func=artist_func,
+        output_format=format
     )
     pipeline.run()
     
