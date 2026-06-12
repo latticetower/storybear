@@ -60,8 +60,19 @@ class BasicEmbeddingPlotter(BasePlotter):
         #print("11", emb2d.shape)
         x_values = emb2d[:, 0]
         y_values = emb2d[:, 1]
+        # if cmap is not None:
+        #     palette = sns.color_palette(cmap.colors)
 
-        ax.scatter(x_values, y_values, alpha=0.5, s=20, cmap=cmap)
+        sns.scatterplot(
+            x=x_values, 
+            y=y_values, 
+            # hue=np.zeros_like(x_values),
+            alpha=0.5, 
+            s=20, 
+            ax=ax,
+            legend=False,
+            # palette=palette,
+        )
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
         ax.set_title(f"Embedding space of {column}, built with {self.model_name}")
@@ -244,7 +255,19 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         emb2d = self.get_dim_reduction(embeddings)
         x_values = emb2d[:, 0]
         y_values = emb2d[:, 1]
-        sns.scatterplot(x=x_values, y=y_values, hue=hue_values, alpha=0.5, s=20, ax=ax, legend=False, cmap=cmap)
+        # if cmap is not None:
+        #     palette = sns.color_palette(cmap.colors)
+
+        sns.scatterplot(
+            x=x_values, 
+            y=y_values, 
+            hue=hue_values, 
+            alpha=0.5,
+            s=20, 
+            ax=ax,
+            legend=False,
+            # palette=cmap
+        )
         # print("11", emb2d.shape)
 
         # ax.scatter(x_values, y_values, c=hue_values, alpha=0.5, s=20)

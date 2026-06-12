@@ -6,6 +6,7 @@ Drop this file into your plotters directory and DataProcessor picks it up automa
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import seaborn as sns
 from typing import Union, Dict, List
 from storybear.datagal.plotters.base import BasePlotter
  
@@ -16,9 +17,13 @@ class HistogramPlotter(BasePlotter):
  
     def plot(self, data: pd.DataFrame, columns: List[str], cmap=None):
         col = columns[0]
+        if cmap is not None:
+            palette = sns.color_palette(cmap.colors)
         fig, ax = plt.subplots()
         try:
-            data[col].dropna().plot.hist(ax=ax, bins=30, edgecolor="white", cmap=cmap)
+            values = data[col].dropna().values
+            sns.histplot(values, ax=ax)  #  , palette=palette)
+            # data[col].dropna().plot.hist(ax=ax, bins=30, edgecolor="white")
             ax.set_title(f"Distribution of {col}")
             ax.set_xlabel(col)
         except Exception as e:
@@ -53,7 +58,6 @@ class HistogramPlotter(BasePlotter):
         return stat_info
     
 
-
  
 class LengthHistogramPlotter(BasePlotter):
     arity = 1
@@ -61,9 +65,13 @@ class LengthHistogramPlotter(BasePlotter):
  
     def plot(self, data: pd.DataFrame, columns: List[str], cmap=None):
         col = columns[0]
+        if cmap is not None:
+            palette = sns.color_palette(cmap.colors)
         fig, ax = plt.subplots()
         try:
-            data[col].dropna().apply(len).plot.hist(ax=ax, bins=30, edgecolor="white", cmap=cmap)
+            values = data[col].dropna().apply(len).values
+            sns.histplot(values, ax=ax)  # , palette=palette)
+            # .plot.hist(ax=ax, bins=30, edgecolor="white", c=[cmap(0)])
             ax.set_title(f"Length distribution of {col}")
             ax.set_xlabel(col)
         except Exception as e:

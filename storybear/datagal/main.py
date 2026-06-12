@@ -8,6 +8,8 @@ from pathlib import Path
 import pandas as pd
 from typing import List
 from collections import defaultdict
+import pypalettes
+import seaborn as sns
 
 from storybear.data_structures import PlotRecord, ReportRecord
 from .plotters.base import BasePlotter, infer_kind, ColKind
@@ -65,6 +67,7 @@ class DataGal:
  
         self._plotter_classes: list[type[BasePlotter]] = []
         self._data: pd.DataFrame | None = None
+        self._cmap = None
  
     # ------------------------------------------------------------------
     # Public API
@@ -123,6 +126,11 @@ class DataGal:
         Import every *.py file in `plotters_dir` and collect BasePlotter
         subclasses that have both `arity` and `accepted_kinds` defined.
         """
+        self._cmap = pypalettes.load_cmap('random')  #, cmap_type="continuous")
+        palette = sns.color_palette(self._cmap.colors)
+        sns.set_palette(palette)
+        # mpl.rc('image', cmap=self._cmap)
+        
         self._plotter_classes.clear()
         py_files = list(self.plotters_dir.glob("*.py"))
         if not py_files:
@@ -220,7 +228,7 @@ class DataGal:
             stats = plotter.compute_statistics(self._data, columns)
             if stats is None:
                 return None, {}
-            fig = plotter.plot(self._data, columns)
+            fig = plotter.plot(self._data, columns, cmap=self._cmap)
             if fig is None:
                 logger.warning(
                     "%s.plot() returned None for columns %s — skipping.",

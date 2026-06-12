@@ -17,8 +17,21 @@ class ScatterPlotter(BasePlotter):
     def plot(self, data, columns, cmap=None):
         x_col, y_col = columns
         fig, ax = plt.subplots()
-        subset = data[[x_col, y_col]].dropna()
-        ax.scatter(subset[x_col], subset[y_col], alpha=0.5, s=20, cmap=cmap)
+        subset = data[[x_col, y_col]].dropna().values
+        if cmap is not None:
+            palette = sns.color_palette(cmap.colors)
+        sns.scatterplot(
+            x=subset[:, 0], 
+            y=subset[:, 1], 
+            # hue=np.zeros_like(subset[:, 0]),
+            alpha=0.5, 
+            s=20,
+            # hue=[cmap(0)],
+            # cmap=cmap,
+            legend=False, 
+            ax=ax,
+            # palette=palette
+        )
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
         ax.set_title(f"{x_col} vs {y_col}")
@@ -70,7 +83,6 @@ class BoxPlotter(BasePlotter):
         ]
         labels = data[cat_col].dropna().unique().tolist()
         try:
-            print(groups)
             ax.boxplot(groups, labels=labels)
             ax.set_xlabel(cat_col)
             ax.set_ylabel(num_col)
