@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # TODO: fix records
 
-class Typography:
+class DocxPrinter:
     """
     Step 9 — Assembles the final .docx report.
 
