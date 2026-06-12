@@ -5,7 +5,7 @@
 ## Features & Limitations
 * The project is an autoEDA framework with the rich user experience.
 * Any non-standard plots appearing in the report is a courtesy of authors mind.
-* In the end it should process some particular bioinformatics data formats (protein sequences, SMILES strings), because I myself am too lazy to do explicit exploratorials by hand every time.
+* It is also capable of processing some particular bioinformatics data formats (protein sequences, DNA, SMILES strings), because I myself am too lazy to do explicit exploratorials by hand every time.
 * Some of the captions might be hard-coded. 
 * The report header is designed to add some amount of exaggeration.
 * The plots are generated 'as is', after that they are processed with LLMs. LLMs might hallucinate. I also might hallucinate during plots coding. This means that any results might not correctly represent the input data. **Use at your own risk**.
@@ -58,7 +58,7 @@ The names of the classes representing each particular part of the pipeline are s
 8. The last class is `Typography` - it collects the data from the previous step and converts the report (for simplicity, made with `python-docx` package).
 
 ## TODO & ideas
-- [ ] add other methods of reporting, i.e., probably replace docx with pdf generation or even make video (slides with generated images+tts)  
+- [x] add other methods of reporting, i.e., probably replace docx with pdf generation
 - [ ] Remove columns with "_id", "Id" and "identifier" from the consideration
 - [ ] add default text gen (both with and without LLMs, no data)
 - [ ] remove very similar plots based on their descriptions
@@ -70,8 +70,12 @@ The names of the classes representing each particular part of the pipeline are s
 - [ ] SMILES: mol descriptors
 - [ ] add some sort of log to be able to understand why some of the columns were not processed
 - [ ] add example with smiles and/or RNA/DNA
-- [ ] use pypalettes for consistent coloring
+- [x] use pypalettes for consistent coloring
 - [x] add new types of columns
+- [ ] add Modal code to main repo
+- [ ] make everything work with ZeroGPU
+- [ ] Add custom flowerplot, heatmap, and something fun.
+
 
 ## References
 1. https://github.com/py-pdf/fpdf2 candidate package for report creation
