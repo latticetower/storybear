@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from typing import Union, Dict, List
+from pathlib import Path
 from storybear.datagal.plotters.base import BasePlotter
  
  
@@ -15,7 +16,7 @@ class HistogramPlotter(BasePlotter):
     arity = 1
     accepted_kinds = (("numeric",),)
  
-    def plot(self, data: pd.DataFrame, columns: List[str], cmap=None):
+    def plot(self, data: pd.DataFrame, columns: List[str], save_path: Path, cmap=None):
         col = columns[0]
         if cmap is not None:
             palette = sns.color_palette(cmap.colors)
@@ -63,7 +64,7 @@ class LengthHistogramPlotter(BasePlotter):
     arity = 1
     accepted_kinds = (("text",),)
  
-    def plot(self, data: pd.DataFrame, columns: List[str], cmap=None):
+    def plot(self, data: pd.DataFrame, columns: List[str], save_path: Path, cmap=None):
         col = columns[0]
         if cmap is not None:
             palette = sns.color_palette(cmap.colors)

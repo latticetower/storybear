@@ -6,14 +6,14 @@ import sys
 import itertools
 from pathlib import Path
 import pandas as pd
-from typing import List
+from typing import List, Union, Iterator, Dict
 from collections import defaultdict
 import pypalettes
 import seaborn as sns
 
 from storybear.data_structures import PlotRecord, ReportRecord
 from .plotters.base import BasePlotter, infer_kind, ColKind
-
+from .filters import TextFilter, filter_id_columns, filter_correlated_columns
 
 logger = logging.getLogger(__name__)
 root_path = rootutils.find_root(search_from=__file__, indicator=".project-root")
@@ -68,6 +68,8 @@ class DataGal:
         self._plotter_classes: list[type[BasePlotter]] = []
         self._data: pd.DataFrame | None = None
         self._cmap = None
+        self._filtered_columns = []
+        self._plot_filter = TextFilter(10)
  
     # ------------------------------------------------------------------
     # Public API
@@ -107,8 +109,10 @@ class DataGal:
     # Step 1 — data loading
     # ------------------------------------------------------------------
  
-    def _load_data(self) -> None:
-        if self.csv_path is None:
+    def _load_data(self, df: pd.DataFrame | None = None) -> None:
+        if df is not None:
+            self._data = df
+        elif self.csv_path is None:
             logger.info("DataGal, _load_data: csv_path is None, do nothing")
             return
         logger.info("Loading CSV: %s", self.csv_path)
@@ -116,6 +120,16 @@ class DataGal:
         logger.info(
             "Loaded %d rows × %d columns", len(self._data), len(self._data.columns)
         )
+        # self._filtered_columns = self._data.columns
+        # apply filter here
+        self._filtered_columns = self._apply_columns_filters(self._data)
+
+    def _apply_columns_filters(self, df: pd.DataFrame) -> List[str]:
+        default_columns = df.columns
+        # first: filter columns with id in names
+        default_columns = filter_id_columns(default_columns)
+        # default_columns = filter_correlated_columns(default_columns)
+        return default_columns
  
     # ------------------------------------------------------------------
     # Step 2 — plugin discovery
@@ -146,7 +160,8 @@ class DataGal:
                     "Skipping %s — missing `arity` or `accepted_kinds`.", cls.__name__
                 )
                 continue
-            if len(cls.accepted_kinds) != cls.arity:
+
+            if cls.arity > 0 and len(cls.accepted_kinds) != cls.arity:
                 logger.warning(
                     "Skipping %s — accepted_kinds length (%d) != arity (%d).",
                     cls.__name__,
@@ -194,21 +209,36 @@ class DataGal:
         results = defaultdict(list)
  
         # Enumerate combinations of sizes 1 … max_arity
-        for arity in range(1, self.max_arity + 1):
+        for arity in range(-1, self.max_arity + 1):
             plotters_for_arity = [p for p in self._plotter_classes if p.arity == arity]
             if not plotters_for_arity:
                 continue
+            if arity <= 0:
+                # process differently, since this plotter uses all available columns
+                kinds = tuple(col_kinds[c] for c in self._filtered_columns)
+                for plotter_cls in plotters_for_arity:
+                    stats = self._get_plot_info(plotter_cls, list(self._filtered_columns))
+                    if stats is None:
+                        continue
+                    save_path = self._run_plotter(plotter_cls, list(self._filtered_columns))
+                    if save_path is not None:
+                        results[plotter_cls.__name__].append((save_path, kinds, stats))
+                continue
  
-            for combo in itertools.combinations(self._data.columns, arity):
+            for combo in itertools.combinations(self._filtered_columns, arity):
                 kinds = tuple(col_kinds[c] for c in combo)
  
                 for plotter_cls in plotters_for_arity:
                     if not plotter_cls.accepts(kinds):
                         continue
- 
-                    save_path, stats = self._run_plotter(plotter_cls, list(combo))
+                    stats = self._get_plot_info(plotter_cls, list(combo))
+                    if stats is None:
+                        continue
+                    save_path = self._run_plotter(plotter_cls, list(combo))
                     if save_path is not None:
                         results[plotter_cls.__name__].append((save_path, kinds, stats))
+
+        self._plot_filter()
  
         total = sum(len(v) for v in results.values())
         logger.info("Done. %d plot(s) saved to %s", total, self.output_dir)
@@ -223,29 +253,44 @@ class DataGal:
         cols_slug = "_".join(columns)
         filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
         save_path = self.output_dir / filename
-        stats = {}  #  TODO: implement stats
         try:
-            stats = plotter.compute_statistics(self._data, columns)
-            if stats is None:
-                return None, {}
-            fig = plotter.plot(self._data, columns, cmap=self._cmap)
+            fig = plotter.plot(self._data, columns, save_path, cmap=self._cmap)
             if fig is None:
                 logger.warning(
                     "%s.plot() returned None for columns %s — skipping.",
                     plotter_cls.__name__,
                     columns,
                 )
-                return None, {}
+                return None
             fig.savefig(save_path, bbox_inches="tight")
             _close_figure(fig)
             logger.debug("Saved: %s", save_path)
-            return save_path, stats
+            return save_path
         except Exception as exc:
             logger.error(
                 "%s failed on columns %s: %s", plotter_cls.__name__, columns, exc
             )
-            return None, {}
-        
+            return None
+
+    def _get_plot_info(self, plotter_cls: type[BasePlotter], columns: list[str]) -> Dict | None:
+        """Instantiate the plotter, call plot(), and save the figure."""
+        assert self._data is not None
+ 
+        plotter = plotter_cls()
+        plotter.set_output_dir(self.output_dir)
+        #cols_slug = "_".join(columns)
+        #filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
+        #save_path = self.output_dir / filename
+        try:
+            stats = plotter.compute_statistics(self._data, columns)
+            return stats
+        except Exception as exc:
+            logger.error(
+                "%s failed on columns %s: %s", plotter_cls.__name__, columns, exc
+            )
+            return None
+
+      
 
 # ---------------------------------------------------------------------------
 # Helpers

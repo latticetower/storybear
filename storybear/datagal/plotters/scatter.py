@@ -7,6 +7,7 @@ import pandas as pd
 from typing import Union, Dict, List
 import seaborn as sns
 import numpy as np
+from pathlib import Path
 from storybear.datagal.plotters.base import BasePlotter
 
 
@@ -14,7 +15,7 @@ class ScatterPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("numeric",), ("numeric",))
 
-    def plot(self, data, columns, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None):
         x_col, y_col = columns
         fig, ax = plt.subplots()
         subset = data[[x_col, y_col]].dropna().values
@@ -73,7 +74,7 @@ class BoxPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("categorical",), ("numeric",))
 
-    def plot(self, data, columns, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None):
         cat_col, num_col = columns
         subset = data[[cat_col, num_col]].dropna()
         fig, ax = plt.subplots()
@@ -88,7 +89,7 @@ class BoxPlotter(BasePlotter):
             ax.set_ylabel(num_col)
             ax.set_title(f"{num_col} by {cat_col}")
         except Exception as e:
-            print("BoxPlot", e)
+            print(f"BoxPlot ({columns}):", e)
             plt.close(fig)
             return None
         return fig
@@ -101,6 +102,10 @@ class BoxPlotter(BasePlotter):
             return False
         subset = data[[cat_col, num_col]].dropna()
         if np.all(subset[num_col].apply(pd.api.types.is_bool)):
+            return False
+        unique_values = np.unique(subset[num_col].values)
+        # print("box plot is_applicable", len(unique_values), len(subset))
+        if len(unique_values) < 10:
             return False
         if len(subset) < 2:
             return False

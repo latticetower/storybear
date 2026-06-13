@@ -31,8 +31,9 @@ from typing import Union, Dict, List
 # import tempfile
 from pathlib import Path
 from abc import ABC, abstractmethod
-# from pathlib import Path
 from typing import ClassVar, Literal
+from pathlib import Path
+
 import numpy as np
 import re
 
@@ -129,7 +130,7 @@ class BasePlotter(ABC):
     # ------------------------------------------------------------------
  
     @abstractmethod
-    def plot(self, data: pd.DataFrame, columns: list[str], cmap = None):
+    def plot(self, data: pd.DataFrame, columns: list[str],  save_path: Path, cmap = None):
         """
         Produce and return a matplotlib Figure for *columns* in *data*.
  

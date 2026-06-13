@@ -8,6 +8,7 @@ import seaborn as sns
 import re
 import pandas as pd
 from typing import Union, Dict, List
+from pathlib import Path
 
 from storybear.datagal.plotters.base import BasePlotter
 
@@ -48,7 +49,7 @@ class BasicEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None):
         # print("plot called", columns)
         column = columns[0]
         fig, ax = plt.subplots()
@@ -232,7 +233,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None):
         # print("plot called", columns)
         x_column, y_column = columns
         fig, ax = plt.subplots()
