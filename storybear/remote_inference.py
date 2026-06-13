@@ -26,6 +26,11 @@ STORYBEAR_VLM_MODEL
     Model name passed to the API (default ``minicpm-v``).
 STORYBEAR_VLM_API_KEY
     API key if the endpoint requires one (default ``EMPTY``).
+STORYBEAR_MODAL_KEY / STORYBEAR_MODAL_SECRET
+    Proxy auth token id/secret for the Modal endpoints (created at
+    https://modal.com/settings/proxy-auth-tokens). When both are set they are
+    sent as the ``Modal-Key``/``Modal-Secret`` headers on every request; when
+    unset no auth headers are sent, so unauthenticated endpoints still work.
 STORYBEAR_HTTP_TIMEOUT
     Per-request timeout in seconds (default ``600``); generous to absorb cold
     starts.
@@ -83,6 +88,20 @@ def _vlm_base_url() -> str:
     return url
 
 
+def _proxy_auth_headers() -> dict:
+    """
+    Headers carrying the Modal proxy auth token, or an empty dict when no token
+    is configured. Both id and secret must be present; a partial config is
+    treated as no auth so a misconfigured half-token does not silently send a
+    useless header.
+    """
+    key = os.environ.get("STORYBEAR_MODAL_KEY")
+    secret = os.environ.get("STORYBEAR_MODAL_SECRET")
+    if key and secret:
+        return {"Modal-Key": key, "Modal-Secret": secret}
+    return {}
+
+
 def _flux_url() -> str:
     url = os.environ.get("STORYBEAR_FLUX_URL")
     if not url:
@@ -111,6 +130,8 @@ def _get_client():
             timeout=_timeout(),
             # We own retries in _create_with_retry (patient, model-load aware).
             max_retries=0,
+            # Modal proxy auth headers (empty dict when no token is configured).
+            default_headers=_proxy_auth_headers(),
         )
     return _client
 
@@ -296,6 +317,7 @@ def flux_i2i_func(prompt: str, file_path: Union[str, Path]) -> Path:
             _flux_url(),
             data={"prompt": prompt},
             files={"image": (file_path.name, f, "image/png")},
+            headers=_proxy_auth_headers(),
             timeout=_timeout(),
         )
     response.raise_for_status()

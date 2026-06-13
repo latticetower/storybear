@@ -13,9 +13,16 @@ Deploy:
 The deploy prints a public URL like:
     https://<workspace>--storybear-minicpm-v-serve.modal.run
 
-Use it as an OpenAI base URL (note the trailing /v1):
+The endpoint requires proxy auth (`requires_proxy_auth=True`). Create a proxy
+auth token for the workspace at https://modal.com/settings/proxy-auth-tokens and
+pass its id/secret in the `Modal-Key`/`Modal-Secret` headers (the OpenAI client
+takes them via `default_headers`):
     from openai import OpenAI
-    client = OpenAI(base_url="https://...modal.run/v1", api_key="EMPTY")
+    client = OpenAI(
+        base_url="https://...modal.run/v1",
+        api_key="EMPTY",
+        default_headers={"Modal-Key": TOKEN_ID, "Modal-Secret": TOKEN_SECRET},
+    )
     client.chat.completions.create(model="minicpm-v", messages=[...])
 """
 
@@ -87,7 +94,10 @@ vllm_image = (
 )
 # vLLM batches concurrent requests, so let one container handle many at once.
 @modal.concurrent(max_inputs=32)
-@modal.web_server(port=VLLM_PORT, startup_timeout=600)
+# requires_proxy_auth rejects unauthenticated requests at Modal's edge (401)
+# before the container runs. Clients must send the Modal-Key and Modal-Secret
+# headers of a proxy auth token created for the workspace.
+@modal.web_server(port=VLLM_PORT, startup_timeout=600, requires_proxy_auth=True)
 def serve():
     """Launch the vLLM OpenAI-compatible API server."""
     import subprocess

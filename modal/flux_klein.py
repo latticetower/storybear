@@ -18,8 +18,14 @@ The deploy prints a public URL like (the class name appears in the subdomain
 because this is an asgi_app on a class):
     https://<workspace>--storybear-flux-klein-fluxklein-web.modal.run
 
+The endpoint requires proxy auth (`requires_proxy_auth=True`). Create a proxy
+auth token for the workspace at https://modal.com/settings/proxy-auth-tokens and
+pass its id/secret in the `Modal-Key`/`Modal-Secret` headers.
+
 Call it (multipart form: `image` file + `prompt` field):
     curl -X POST https://...modal.run/edit \
+        -H "Modal-Key: $TOKEN_ID" \
+        -H "Modal-Secret: $TOKEN_SECRET" \
         -F "prompt=Add bold black contours, lazy meme-like doodle style." \
         -F "image=@chart.png" \
         -o edited.png
@@ -126,7 +132,10 @@ class FluxKlein:
         result.save(buffer, format="PNG")
         return buffer.getvalue()
 
-    @modal.asgi_app()
+    # requires_proxy_auth rejects unauthenticated requests at Modal's edge
+    # (401) before the container runs. Clients must send the Modal-Key and
+    # Modal-Secret headers of a proxy auth token created for the workspace.
+    @modal.asgi_app(requires_proxy_auth=True)
     def web(self):
         """FastAPI app exposing the image-editing endpoint."""
         from fastapi import FastAPI, File, Form, UploadFile

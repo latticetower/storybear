@@ -30,6 +30,30 @@ modal secret create huggingface-secret HF_TOKEN=hf_xxx
 The first deploy downloads each model into a shared persistent Volume
 (`storybear-hf-cache`); later cold starts reuse it.
 
+## Authentication
+
+All three endpoints are protected with Modal **proxy auth tokens**
+(`requires_proxy_auth=True` on each web decorator). Modal rejects requests
+without valid credentials at the edge with a `401` before the container runs.
+
+Create a proxy auth token for your workspace at
+[modal.com/settings/proxy-auth-tokens](https://modal.com/settings/proxy-auth-tokens).
+It gives you a token id (`wk-…`) and secret (`ws-…`):
+
+```bash
+export TOKEN_ID=wk-xxxxxxxx
+export TOKEN_SECRET=ws-xxxxxxxx
+```
+
+Clients send these as the `Modal-Key` and `Modal-Secret` headers (see the call
+examples below). For the Storybear pipeline, expose the same pair to the client
+via `STORYBEAR_MODAL_KEY` / `STORYBEAR_MODAL_SECRET`:
+
+```bash
+export STORYBEAR_MODAL_KEY=$TOKEN_ID
+export STORYBEAR_MODAL_SECRET=$TOKEN_SECRET
+```
+
 ## Deploy
 
 ```bash
@@ -56,7 +80,8 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="https://<workspace>--storybear-minicpm-v-serve.modal.run/v1",
-    api_key="EMPTY",  # vLLM does not require a key unless you add --api-key
+    api_key="EMPTY",  # vLLM ignores this; auth is the proxy token below
+    default_headers={"Modal-Key": TOKEN_ID, "Modal-Secret": TOKEN_SECRET},
 )
 
 # Text-only
@@ -84,6 +109,8 @@ or using curl:
 # Text-only
 curl https://<workspace>--storybear-minicpm-v-serve.modal.run/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Modal-Key: $TOKEN_ID" \
+  -H "Modal-Secret: $TOKEN_SECRET" \
   -d '{
     "model": "minicpm-v",
     "messages": [{"role": "user", "content": "Why are histograms useful in EDA?"}]
@@ -93,6 +120,8 @@ curl https://<workspace>--storybear-minicpm-v-serve.modal.run/v1/chat/completion
 
 ```bash
 curl -X POST https://<workspace>--storybear-flux-klein-fluxklein-web.modal.run/edit \
+    -H "Modal-Key: $TOKEN_ID" \
+    -H "Modal-Secret: $TOKEN_SECRET" \
     -F "prompt=Add bold black contours, lazy meme-like doodle style." \
     -F "image=@chart.png" \
     -o edited.png
@@ -107,6 +136,7 @@ services:
 
 ```python
 import base64
+import os
 import requests
 from openai import OpenAI
 
@@ -114,7 +144,10 @@ VLM_URL = "https://<workspace>--storybear-minicpm-v-serve.modal.run/v1"
 # Class-based asgi_app: the subdomain includes the class name (fluxklein).
 FLUX_URL = "https://<workspace>--storybear-flux-klein-fluxklein-web.modal.run/edit"
 
-vlm = OpenAI(base_url=VLM_URL, api_key="EMPTY")
+# Proxy auth token headers, sent on every request to the protected endpoints.
+AUTH = {"Modal-Key": os.environ["TOKEN_ID"], "Modal-Secret": os.environ["TOKEN_SECRET"]}
+
+vlm = OpenAI(base_url=VLM_URL, api_key="EMPTY", default_headers=AUTH)
 
 
 def it2t_summary_func(system_prompt, record_list):
@@ -128,7 +161,9 @@ def it2t_summary_func(system_prompt, record_list):
 
 def flux_i2i_func(prompt, file_path):
     with open(file_path, "rb") as f:
-        resp = requests.post(FLUX_URL, data={"prompt": prompt}, files={"image": f})
+        resp = requests.post(
+            FLUX_URL, data={"prompt": prompt}, files={"image": f}, headers=AUTH
+        )
     resp.raise_for_status()
     with open(file_path, "wb") as f:
         f.write(resp.content)
@@ -147,5 +182,7 @@ an OpenAI vision message with a base64 `image_url` from `record.plot_path`.
   for five minutes between calls.
 - Pin `vllm` in `minicpm_v.py` to a release that supports MiniCPM-V-4.6 for
   reproducible builds.
-- To require auth on the vLLM endpoint, add `--api-key <key>` to the `vllm serve`
-  command and pass the same key as the OpenAI client's `api_key`.
+- Auth is handled uniformly by Modal proxy auth tokens (see **Authentication**
+  above), so the inner servers need no auth flags. You *can* additionally set
+  vLLM's own `--api-key <key>` if you want a second layer, but it is redundant
+  with the proxy auth token.

@@ -9,7 +9,9 @@ than vLLM, so this is the better choice when reports are bursty/one-off and
 cold-start latency dominates.
 
 It exposes the same OpenAI-compatible `/v1/chat/completions` API as the vLLM
-deployment, so the exact same curl / OpenAI-client calls work against it.
+deployment, so the exact same curl / OpenAI-client calls work against it. Like
+the vLLM deployment it requires proxy auth (`requires_proxy_auth=True`); pass a
+workspace proxy auth token via the `Modal-Key`/`Modal-Secret` headers.
 
 Deploy:
     modal deploy modal/minicpm_v_llamacpp.py
@@ -116,7 +118,10 @@ llama_image = (
 )
 # llama-server batches a handful of requests with continuous batching below.
 @modal.concurrent(max_inputs=4)
-@modal.web_server(port=LLAMA_PORT, startup_timeout=600)
+# requires_proxy_auth rejects unauthenticated requests at Modal's edge (401)
+# before the container runs. Clients must send the Modal-Key and Modal-Secret
+# headers of a proxy auth token created for the workspace.
+@modal.web_server(port=LLAMA_PORT, startup_timeout=600, requires_proxy_auth=True)
 def serve():
     """Launch the llama.cpp OpenAI-compatible server with vision enabled."""
     import subprocess
