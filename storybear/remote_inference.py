@@ -88,8 +88,11 @@ def _flux_url() -> str:
     if not url:
         raise RuntimeError(
             "STORYBEAR_FLUX_URL is not set. Point it at the deployed FLUX endpoint, "
-            "e.g. https://<workspace>--storybear-flux-klein-web.modal.run/edit"
+            "e.g. https://<workspace>--storybear-flux-klein-fluxklein-web.modal.run/edit"
         )
+    # The FastAPI app only serves POST /edit; tolerate a base URL without it.
+    if not url.rstrip("/").endswith("/edit"):
+        url = url.rstrip("/") + "/edit"
     return url
 
 
