@@ -32,7 +32,11 @@ dependencies = [
     "umap-learn",
     "partialsmiles",
     "pypalettes",
-    "fpdf2"
+    "fpdf2",
+    "modal",
+    "openai",
+    "requests",
+    "pillow"
 ]
 
 readme = "readme.md"
