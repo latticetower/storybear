@@ -236,7 +236,7 @@ class DataGal:
                     if save_path is not None:
                         results.append((plotter_cls.__name__, save_path, kinds, stats))
 
-        results = self._plot_filter(results)
+        results = self._plot_filter.get_most_distinct(results)
  
         total = len(results)
         logger.info("Done. %d plot(s) saved to %s", total, self.output_dir)
