@@ -59,9 +59,10 @@ The names of the classes representing each particular part of the pipeline are s
 
 ## TODO & ideas
 - [x] add other methods of reporting, i.e., probably replace docx with pdf generation
-- [ ] Remove columns with "_id", "Id" and "identifier" from the consideration
+- [x] Remove columns with "_id", "Id" and "identifier" from the consideration
 - [ ] add default text gen (both with and without LLMs, no data)
-- [ ] remove very similar plots based on their descriptions
+- [x] remove very similar plots based on their descriptions
+- [ ] don't save plots which were filtered by description
 - [ ] don't build plots for the highly correlated columns
 - [x] For string columns: draw length distributions
 - [x] Proteins: compute embeddings with esm2 8m + draw scatterplots
@@ -78,10 +79,17 @@ The names of the classes representing each particular part of the pipeline are s
 
 
 ## References
-1. https://github.com/py-pdf/fpdf2 candidate package for report creation
+1. https://github.com/py-pdf/fpdf2 package for pdf report creation
 2. https://arxiv.org/abs/2605.14163 possible candidate method for pipeline inprovement
 3. https://arxiv.org/abs/2508.16757 paper on reranking strategies. I use basic and slow approach at the moment - pair reranking of plot descriptions, scoring based on this reranking, selection of top N plots (N=5).
 
+## Pretrained Models in use
+1. https://huggingface.co/black-forest-labs/FLUX.2-klein-base-4B in local inference, for image styling
+2. https://huggingface.co/openbmb/MiniCPM-V-4.6 in main pipeline, for caption, header, lead generation
+3. https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2 source of text embeddings for plots filtering and creation
+4. https://huggingface.co/facebook/esm2_t6_8M_UR50D source of protein embeddings for corresponding columns (if any). My favourite model!
+5. https://huggingface.co/RaphaelMourad/Mistral-DNA-v1-138M-bacteria source of DNA/RNA embeddings for corresponding columns (if any). I don't use DNA/RNA models, so I took the first small one
+6. https://huggingface.co/DeepChem/ChemBERTa-10M-MLM source of molecular embeddings for corresponding columns with SMILES strings
 
 ## Our Team
 
