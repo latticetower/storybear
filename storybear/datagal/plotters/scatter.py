@@ -52,9 +52,9 @@ class ScatterPlotter(BasePlotter):
         subset = data[[x_col, y_col]].dropna()
         if len(subset) < 2:
             return False
-        if len(subset[x_col].unique()) < 5:
+        if len(subset[x_col].unique()) < max(5, 0.2*len(subset)):
             return False
-        if len(subset[y_col].unique()) < 5:
+        if len(subset[y_col].unique()) < max(5, 0.2*len(subset)):
             return False
         return True
 

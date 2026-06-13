@@ -238,7 +238,7 @@ class DataGal:
 
         results = self._plot_filter(results)
  
-        total = sum(len(v) for v in results.values())
+        total = len(results)
         logger.info("Done. %d plot(s) saved to %s", total, self.output_dir)
         return results
  

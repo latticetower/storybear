@@ -99,7 +99,7 @@ class BasicEmbeddingPlotter(BasePlotter):
             # print("BASIC EMBEDDING PLOTTER is_applicable subset length", subset[:3])
             return False
         unique_seq = np.unique(subset)
-        if len(unique_seq) < 5:
+        if len(unique_seq) < max(10, 0.3*len(subset)):
             # print("BASIC EMBEDDING PLOTTER is_applicable subset length", unique_seq[:10])
             return False
         return True
@@ -301,7 +301,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
             return False
         text_values = subset.values[:, 0]
         unique_seq = np.unique(text_values)
-        if len(unique_seq) < 5:
+        if len(unique_seq) < max(10, 0.3*len(subset)):
             # print("BASIC EMBEDDING PLOTTER is_applicable subset length", unique_seq[:10])
             return False
         return True
