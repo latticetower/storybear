@@ -9,7 +9,7 @@ import re
 import pandas as pd
 from typing import Union, Dict, List
 from pathlib import Path
-
+from collections import OrderedDict
 from storybear.datagal.plotters.base import BasePlotter
 
 from storybear.utils import get_2d_pca, get_2d_umap, is_valid_smiles
@@ -49,7 +49,7 @@ class BasicEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns, save_path: Path, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
         # print("plot called", columns)
         column = columns[0]
         fig, ax = plt.subplots()
@@ -77,7 +77,10 @@ class BasicEmbeddingPlotter(BasePlotter):
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
         ax.set_title(f"Embedding space of {column}, built with {self.model_name}")
-        return fig
+
+        fig.savefig(save_path, bbox_inches="tight")
+        plt.close(fig)
+        return save_path
     
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         # print("BASIC EMBEDDING PLOTTER is_applicable", columns)
@@ -101,14 +104,14 @@ class BasicEmbeddingPlotter(BasePlotter):
             return False
         return True
 
-    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[OrderedDict, None]:
         if not self.is_applicable(data, columns):
             return None
 
         column = columns[0]
         subset = data[column].dropna()
         unique_values = subset.unique()
-        stat_info = dict()
+        stat_info = OrderedDict()
         stat_info["Number of unique texts"] = len(unique_values)
         # stat_info[f"Mean of {x_col} values"] = subset[x_col].mean()
         # stat_info[f"Standard deviation of {x_col} values"] = subset[x_col].std()
@@ -233,7 +236,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns, save_path: Path, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
         # print("plot called", columns)
         x_column, y_column = columns
         fig, ax = plt.subplots()
@@ -275,7 +278,10 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
         ax.set_title(f"Embedding space of {x_column}, colored by {y_column}, \nbuilt with {self.model_name}")
-        return fig
+
+        fig.savefig(save_path, bbox_inches="tight")
+        plt.close(fig)
+        return save_path
     
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         # print("BASIC EMBEDDING PLOTTER is_applicable", columns)
@@ -300,14 +306,14 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
             return False
         return True
 
-    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[OrderedDict, None]:
         if not self.is_applicable(data, columns):
             return None
 
         x_column, y_column = columns
         subset = data[[x_column, y_column]].dropna()
         unique_values = np.unique(subset.values[:, 0])
-        stat_info = dict()
+        stat_info = OrderedDict()
         stat_info["Number of unique texts"] = len(unique_values)
         # stat_info[f"Mean of {x_col} values"] = subset[x_col].mean()
         # stat_info[f"Standard deviation of {x_col} values"] = subset[x_col].std()

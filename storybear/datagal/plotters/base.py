@@ -33,7 +33,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import ClassVar, Literal
 from pathlib import Path
-
+from collections import OrderedDict
 import numpy as np
 import re
 
@@ -130,7 +130,7 @@ class BasePlotter(ABC):
     # ------------------------------------------------------------------
  
     @abstractmethod
-    def plot(self, data: pd.DataFrame, columns: list[str],  save_path: Path, cmap = None):
+    def plot(self, data: pd.DataFrame, columns: list[str],  save_path: Path, cmap = None) -> Path:
         """
         Produce and return a matplotlib Figure for *columns* in *data*.
  
@@ -149,7 +149,7 @@ class BasePlotter(ABC):
         """
 
     @abstractmethod
-    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[OrderedDict, None]:
         """
         Produce and return an dictionary with statistics computed for *columns* in *data*.
  

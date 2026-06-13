@@ -8,6 +8,7 @@ from typing import Union, Dict, List
 import seaborn as sns
 import numpy as np
 from pathlib import Path
+from collections import OrderedDict
 from storybear.datagal.plotters.base import BasePlotter
 
 
@@ -15,7 +16,7 @@ class ScatterPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("numeric",), ("numeric",))
 
-    def plot(self, data, columns, save_path: Path, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
         x_col, y_col = columns
         fig, ax = plt.subplots()
         subset = data[[x_col, y_col]].dropna().values
@@ -36,7 +37,11 @@ class ScatterPlotter(BasePlotter):
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
         ax.set_title(f"{x_col} vs {y_col}")
-        return fig
+
+        fig.savefig(save_path, bbox_inches="tight")
+        plt.close(fig)
+
+        return save_path
     
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 2:
@@ -53,13 +58,13 @@ class ScatterPlotter(BasePlotter):
             return False
         return True
 
-    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[OrderedDict, None]:
         if not self.is_applicable(data, columns):
             return None
         x_col, y_col = columns
         subset = data[[x_col, y_col]].dropna()
 
-        stat_info = dict()
+        stat_info = OrderedDict()
         stat_info["Number of points"] = len(subset)
         stat_info[f"Mean of {x_col} values"] = subset[x_col].mean()
         stat_info[f"Standard deviation of {x_col} values"] = subset[x_col].std()
@@ -74,7 +79,7 @@ class BoxPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("categorical",), ("numeric",))
 
-    def plot(self, data, columns, save_path: Path, cmap=None):
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
         cat_col, num_col = columns
         subset = data[[cat_col, num_col]].dropna()
         fig, ax = plt.subplots()
@@ -92,7 +97,10 @@ class BoxPlotter(BasePlotter):
             print(f"BoxPlot ({columns}):", e)
             plt.close(fig)
             return None
-        return fig
+
+        fig.savefig(save_path, bbox_inches="tight")
+        plt.close(fig)
+        return save_path
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 2:
@@ -111,13 +119,13 @@ class BoxPlotter(BasePlotter):
             return False
         return True
 
-    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[Dict, None]:
+    def compute_statistics(self, data: pd.DataFrame, columns: list[str]) -> Union[OrderedDict, None]:
         if not self.is_applicable(data, columns):
             return None
         cat_col, num_col = columns
         subset = data[[cat_col, num_col]].dropna()
 
-        stat_info = dict()
+        stat_info = OrderedDict()
         stat_info["Number of points"] = len(subset)
         stat_info[f"Number of unique {cat_col} values"] = len(subset[cat_col].unique())
         stat_info[f"Mean of {num_col} values"] = subset[num_col].mean()

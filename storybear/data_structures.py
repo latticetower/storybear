@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union, List
+from collections import OrderedDict
 
 
 @dataclass
@@ -41,7 +42,7 @@ class PlotRecord:
     plot_path: Path
     columns: list[str]
     plotter_class: str
-    stats: dict
+    stats: OrderedDict
     caption: Union[str, None] = None
     ranking: float = - 1.0  # R — higher is more interesting/informative
     position: int = -1  # narrative order assigned by Junior
@@ -72,7 +73,6 @@ class PlotRecord:
             position = record.position
         return PlotRecord(plot_path, columns, plotter_class, stats, caption, ranking, position)
 
-        pass
 
 
 @dataclass

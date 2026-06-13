@@ -7,7 +7,7 @@ import itertools
 from pathlib import Path
 import pandas as pd
 from typing import List, Union, Iterator, Dict
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import pypalettes
 import seaborn as sns
 
@@ -77,12 +77,11 @@ class DataGal:
     def __call__(self, df: pd.DataFrame) -> ReportRecord:
         self._data = df
         self._load_plotters()
-        plotter_class2paths = self._generate_plots()
+        plot_info = self._generate_plots()
         all_records = []
-        for plotter_class_name, path_list in plotter_class2paths.items():
-            for plot_path, columns, stats in path_list:
-                record = PlotRecord(plot_path, columns, plotter_class_name, stats)
-                all_records.append(record)
+        for plotter_class_name, plot_path, columns, stats in plot_info:
+            record = PlotRecord(plot_path, columns, plotter_class_name, stats)
+            all_records.append(record)
         report = ReportRecord("", "", all_records)
         return report
  
@@ -96,12 +95,11 @@ class DataGal:
         """
         self._load_data()
         self._load_plotters()
-        plotter_class2paths = self._generate_plots()
+        plot_info = self._generate_plots()
         all_records = []
-        for plotter_class_name, path_list in plotter_class2paths.items():
-            for plot_path, columns, stats in path_list:
-                record = PlotRecord(plot_path, columns, plotter_class_name, stats)
-                all_records.append(record)
+        for plotter_class_name, plot_path, columns, stats in plot_info:
+            record = PlotRecord(plot_path, columns, plotter_class_name, stats)
+            all_records.append(record)
         return all_records
 
  
@@ -206,7 +204,7 @@ class DataGal:
         logger.info("Column kinds: %s", col_kinds)
  
         # results: dict[str, list[Path]] = {cls.__name__: [] for cls in self._plotter_classes}
-        results = defaultdict(list)
+        results = []
  
         # Enumerate combinations of sizes 1 … max_arity
         for arity in range(-1, self.max_arity + 1):
@@ -222,7 +220,7 @@ class DataGal:
                         continue
                     save_path = self._run_plotter(plotter_cls, list(self._filtered_columns))
                     if save_path is not None:
-                        results[plotter_cls.__name__].append((save_path, kinds, stats))
+                        results.append((plotter_cls.__name__, save_path, kinds, stats))
                 continue
  
             for combo in itertools.combinations(self._filtered_columns, arity):
@@ -236,9 +234,9 @@ class DataGal:
                         continue
                     save_path = self._run_plotter(plotter_cls, list(combo))
                     if save_path is not None:
-                        results[plotter_cls.__name__].append((save_path, kinds, stats))
+                        results.append((plotter_cls.__name__, save_path, kinds, stats))
 
-        self._plot_filter()
+        results = self._plot_filter(results)
  
         total = sum(len(v) for v in results.values())
         logger.info("Done. %d plot(s) saved to %s", total, self.output_dir)
@@ -254,16 +252,16 @@ class DataGal:
         filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
         save_path = self.output_dir / filename
         try:
-            fig = plotter.plot(self._data, columns, save_path, cmap=self._cmap)
-            if fig is None:
+            save_path = plotter.plot(self._data, columns, save_path, cmap=self._cmap)
+            if save_path is None:
                 logger.warning(
                     "%s.plot() returned None for columns %s — skipping.",
                     plotter_cls.__name__,
                     columns,
                 )
                 return None
-            fig.savefig(save_path, bbox_inches="tight")
-            _close_figure(fig)
+            #fig.savefig(save_path, bbox_inches="tight")
+            # _close_figure(fig)
             logger.debug("Saved: %s", save_path)
             return save_path
         except Exception as exc:
@@ -272,7 +270,7 @@ class DataGal:
             )
             return None
 
-    def _get_plot_info(self, plotter_cls: type[BasePlotter], columns: list[str]) -> Dict | None:
+    def _get_plot_info(self, plotter_cls: type[BasePlotter], columns: list[str]) -> OrderedDict | None:
         """Instantiate the plotter, call plot(), and save the figure."""
         assert self._data is not None
  

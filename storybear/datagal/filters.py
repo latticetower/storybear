@@ -25,5 +25,7 @@ class TextFilter:
     def __init__(self, n: int):
         self.n = n
 
-    def __call__(self):
+    def __call__(self, plot_info_list: List):
+        # plotter_cls.__name__, save_path, kinds, stats
+        
         pass
