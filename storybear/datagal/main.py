@@ -1,5 +1,5 @@
 import rootutils
-import importlib.util
+# import importlib.util
 import logging
 import tempfile
 import sys
@@ -8,10 +8,12 @@ from pathlib import Path
 import pandas as pd
 from typing import List, Union, Iterator, Dict
 from collections import defaultdict, OrderedDict
-import pypalettes
+# 
 import seaborn as sns
 
-from storybear.data_structures import PlotRecord, ReportRecord
+# from pypalettes import load_cmap
+
+from ..data_structures import PlotRecord, ReportRecord
 from .plotters.base import BasePlotter, infer_kind, ColKind
 from .filters import TextFilter, filter_id_columns, filter_correlated_columns
 # from .plotters import *
@@ -23,8 +25,6 @@ root_path = rootutils.find_root(search_from=__file__, indicator=".project-root")
 # ---------------------------------------------------------------------------
 # DataGal
 # ---------------------------------------------------------------------------
-
-
 
 
 class DataGal:
@@ -82,7 +82,7 @@ class DataGal:
         if not isinstance(df, pd.DataFrame):
             raise TypeError(f"DataGal: accepts dataframe in __call__, got {type(df)}")
         self._data = df
-        self._load_plotters()
+        # self._load_plotters()
         plot_info = self._generate_plots()
         all_records = []
         for plotter_class_name, plot_path, kinds, columns, stats in plot_info:
@@ -99,9 +99,9 @@ class DataGal:
         -------
         dict mapping plotter class name → list of saved file Paths.
         """
-        self._cmap = pypalettes.load_cmap('random')
-        palette = sns.color_palette(self._cmap.colors)
-        sns.set_palette(palette)
+        # self._cmap = pypalettes.load_cmap('random')
+        # palette = sns.color_palette(self._cmap.colors)
+        # sns.set_palette(palette)
 
         self._load_data()
         # self._load_plotters()
@@ -111,8 +111,6 @@ class DataGal:
             record = PlotRecord(plot_path, columns, plotter_class_name, stats)
             all_records.append(record)
         return all_records
-
- 
     # ------------------------------------------------------------------
     # Step 1 — data loading
     # ------------------------------------------------------------------
@@ -138,68 +136,7 @@ class DataGal:
         default_columns = filter_id_columns(default_columns)
         # default_columns = filter_correlated_columns(default_columns)
         return default_columns
- 
-    # ------------------------------------------------------------------
-    # Step 2 — plugin discovery
-    # ------------------------------------------------------------------
-
-    def _load_plotters_deprecated(self) -> None:
-        """
-        Import every *.py file in `plotters_dir` and collect BasePlotter
-        subclasses that have both `arity` and `accepted_kinds` defined.
-        """
-        self._cmap = pypalettes.load_cmap('random')  #, cmap_type="continuous")
-        palette = sns.color_palette(self._cmap.colors)
-        sns.set_palette(palette)
-        # mpl.rc('image', cmap=self._cmap)
-        
-        self._plotter_classes.clear()
-        py_files = list(self.plotters_dir.glob("*.py"))
-        if not py_files:
-            logger.warning("No Python files found in plotters directory: %s", self.plotters_dir)
- 
-        for py_file in py_files:
-            self._import_module(py_file)
- 
-        # Collect all BasePlotter subclasses that are properly configured
-        for cls in _all_subclasses(BasePlotter):
-            if not hasattr(cls, "arity") or not hasattr(cls, "accepted_kinds"):
-                logger.warning(
-                    "Skipping %s — missing `arity` or `accepted_kinds`.", cls.__name__
-                )
-                continue
-
-            if cls.arity > 0 and len(cls.accepted_kinds) != cls.arity:
-                logger.warning(
-                    "Skipping %s — accepted_kinds length (%d) != arity (%d).",
-                    cls.__name__,
-                    len(cls.accepted_kinds),
-                    cls.arity,
-                )
-                continue
-            if cls not in self._plotter_classes:
-                self._plotter_classes.append(cls)
-                logger.info("Registered plotter: %s (arity=%d)", cls.__name__, cls.arity)
- 
-        logger.info("Total plotters registered: %d", len(self._plotter_classes))
- 
-    @staticmethod
-    def _import_module(py_file: Path) -> None:
-        module_name = f"_eda_plugin_{py_file.stem}"
-        if module_name in sys.modules:
-            return
-        spec = importlib.util.spec_from_file_location(module_name, py_file)
-        if spec is None or spec.loader is None:
-            logger.warning("Could not load spec for %s", py_file)
-            return
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        try:
-            spec.loader.exec_module(module)  # type: ignore[union-attr]
-        except Exception as exc:
-            logger.error("Error importing %s: %s", py_file.name, exc)
-            del sys.modules[module_name]
- 
+  
     # ------------------------------------------------------------------
     # Step 3 — plot generation
     # ------------------------------------------------------------------
@@ -264,7 +201,7 @@ class DataGal:
         logger.warning("Done. %d plot(s) saved to %s", total, self.output_dir)
         return saved_results
  
-    def _run_plotter(self, plotter_cls: type[BasePlotter], columns: list[str]) -> Path | None:
+    def _run_plotter(self, plotter_cls, columns: list[str]) -> Path | None:
         """Instantiate the plotter, call plot(), and save the figure."""
         assert self._data is not None
  
@@ -292,7 +229,7 @@ class DataGal:
             )
             return None
 
-    def _get_plot_info(self, plotter_cls: type[BasePlotter], columns: list[str]) -> OrderedDict | None:
+    def _get_plot_info(self, plotter_cls, columns: list[str]) -> OrderedDict | None:
         """Instantiate the plotter, call plot(), and save the figure."""
         assert self._data is not None
  
@@ -316,19 +253,11 @@ class DataGal:
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _all_subclasses(cls: type) -> list[type]:
-    """Recursively collect all subclasses of *cls*."""
-    result: list[type] = []
-    for sub in cls.__subclasses__():
-        result.append(sub)
-        result.extend(_all_subclasses(sub))
-    return result
- 
- 
-def _close_figure(fig) -> None:
-    """Close a matplotlib figure without importing matplotlib at module level."""
-    try:
-        import matplotlib.pyplot as plt
-        plt.close(fig)
-    except Exception as e:
-        print(e)
+  
+# def _close_figure(fig) -> None:
+#     """Close a matplotlib figure without importing matplotlib at module level."""
+#     try:
+#         import matplotlib.pyplot as plt
+#         plt.close(fig)
+#     except Exception as e:
+#         print(e)

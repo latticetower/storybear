@@ -7,7 +7,7 @@ All pipeline stages communicate via these dataclasses — no stage
 should invent its own ad-hoc dicts or tuples.
 """
 
-from __future__ import annotations
+# from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path

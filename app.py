@@ -8,9 +8,9 @@ from pathlib import Path
 from time import sleep
 import numpy as np
 import pandas as pd
-from storybear.data import generate_data
+from storybear.data import download_example_data
 from storybear.data_structures import ReportRecord, PlotRecord
-from storybear.pipeline import StorybearPipeline
+
 
 DATA_EXAMPLES = [
     ["hf://datasets/phihung/titanic/train.csv"],
@@ -24,7 +24,7 @@ def initialize_instance(request: gr.Request):
     tempdir = Path("temp")
     tempdir.mkdir(exist_ok=True)
     csv = tempdir / "smth.csv"
-    generate_data(csv)
+    download_example_data(csv)
     df = pd.read_csv(csv)
     instances[request.session_hash] = {'data_frame': df, 'report': None}
     return "Session initialized!"
@@ -33,13 +33,6 @@ def initialize_instance(request: gr.Request):
 def cleanup_instance(request: gr.Request):
     if request.session_hash in instances:
         del instances[request.session_hash]
-
-
-# def increment_counter(request: gr.Request):
-#     if request.session_hash in instances:
-#         instance = instances[request.session_hash]
-#         return instance+1
-#     return "Error: Session not initialized"
 
 def call_clear_checkboxes(*input):
     print("call clear", len(input))
@@ -109,36 +102,9 @@ class StageProcessor:
         return f"Finished! Session hash is not available, no data"
 
 
-
-def create_app(use_llm=False, use_vlm=False):
-    if use_llm:
-        from storybear.local_inference import it2t_summary_func
-        captionist_it2t_func = it2t_summary_func
-        foodie_it2t_func = it2t_summary_func
-        editor_it2t_func = it2t_summary_func
-    else:
-        captionist_it2t_func = None
-        foodie_it2t_func = None
-        editor_it2t_func = None
-
-    if use_vlm:
-        from storybear.local_inference import flux_i2i_func
-        artist_i2i_func = flux_i2i_func
-    else:
-        artist_i2i_func = None
-
-    pipeline = StorybearPipeline(
-        captionist_it2t_func=captionist_it2t_func,
-        foodie_it2t_func=foodie_it2t_func,
-        editor_it2t_func=editor_it2t_func,
-        artist_i2i_func=artist_i2i_func,
-    )
-    named_stages_list = pipeline.get_stages()
-
-    # current_value = gr.State([0])
+def build_ui(named_stages_list):
     num_stages = len(named_stages_list)
     pipeline_blocks = []
-    
     with gr.Blocks(title="storybear") as demo:
         gr.Markdown("## STORYBEAR: from science to fairytale via agent-assisted storytelling")
         status_output = gr.Textbox(label="Status")
@@ -202,7 +168,54 @@ def create_app(use_llm=False, use_vlm=False):
 
         demo.load(initialize_instance, inputs=None, outputs=status_output)    
         # Clean up instance when page is closed/refreshed
-        demo.unload(cleanup_instance)   
+        demo.unload(cleanup_instance)
+    return demo
+
+
+def create_app(use_llm=False, use_vlm=False, remote=False):
+    inference = "storybear.remote_inference" if remote else "storybear.local_inference"
+
+    if use_llm:
+        # from storybear.local_inference import it2t_summary_func
+        import importlib
+        inf = importlib.import_module(inference)
+        it2t_summary_func = inf.it2t_summary_func
+        # Foodie uses the optimized pairwise compare call when the backend has one.
+        it2t_compare_func = getattr(inf, "it2t_compare_func", it2t_summary_func)
+        
+        captionist_it2t_func = it2t_summary_func
+        foodie_it2t_func = it2t_compare_func
+        editor_it2t_func = it2t_summary_func
+    else:
+        captionist_it2t_func = None
+        foodie_it2t_func = None
+        editor_it2t_func = None
+
+    if use_vlm:
+        # from storybear.local_inference import flux_i2i_func
+        import importlib
+        flux_i2i_func = importlib.import_module(inference).flux_i2i_func
+        artist_i2i_func = flux_i2i_func
+    else:
+        artist_i2i_func = None
+
+    from storybear.pipeline import StorybearPipeline
+
+    pipeline = StorybearPipeline(
+        captionist_it2t_func=captionist_it2t_func,
+        foodie_it2t_func=foodie_it2t_func,
+        editor_it2t_func=editor_it2t_func,
+        artist_i2i_func=artist_i2i_func,
+    )
+    named_stages_list = pipeline.get_stages()
+
+    # current_value = gr.State([0])
+    
+    # pipeline_blocks = []
+    # with gr.Blocks(title="storybear") as demo:
+    #     gr.Markdown("simple ui")
+    
+    demo = build_ui(named_stages_list)
 
     return demo
 

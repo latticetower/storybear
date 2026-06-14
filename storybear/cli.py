@@ -3,8 +3,8 @@ import pandas as pd
 import click
 import warnings
 
-from storybear.pipeline import StorybearPipeline
-from storybear.data import generate_data, download_example_data
+from .pipeline import StorybearPipeline
+from .data import download_example_data
 
 
 
@@ -62,6 +62,7 @@ def main_cli(csv, tempdir, captionist, foodie, editor, artist, show_warnings, re
     pipeline.run()
     
 
-if __name__ == '__main__':
-    main_cli()
+# if __name__ == '__main__':
+#     print("Run cli as a script")
+#     main_cli()
 
