@@ -36,11 +36,12 @@ def flux_i2i_func(prompt: str, file_path: Path):
     #    weight_name="ugly_kontext_klein_4b_v1.safetensors",
     #)
     from diffusers import Flux2KleinPipeline
-    flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", dtype=dtype).to(device)
+    flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", torch_dtype=dtype).to(device)
     if device != "cpu":
         flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
 
     reference = Image.open(file_path).convert("RGB") #.resize((1024, 1024))
+    print(reference.size)
     img = flux_pipe(
         prompt=prompt, 
         image=reference, 

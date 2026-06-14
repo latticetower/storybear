@@ -42,7 +42,7 @@ class Foodie(_LLMMixin):
         "and potential reader interest"
     )
 
-    def __init__(self, criteria: str | None = None, max_workers: int = 16) -> None:
+    def __init__(self, criteria: str | None = None, max_workers: int = 1) -> None:
         self.criteria = criteria or self.DEFAULT_CRITERIA
         self._llm_image2text_func = None
         # Pairwise comparisons are independent and I/O-bound against the remote
