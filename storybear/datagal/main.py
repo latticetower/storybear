@@ -14,6 +14,8 @@ import seaborn as sns
 from storybear.data_structures import PlotRecord, ReportRecord
 from .plotters.base import BasePlotter, infer_kind, ColKind
 from .filters import TextFilter, filter_id_columns, filter_correlated_columns
+# from .plotters import *
+from .plotters import PLOTTER_CLASSES
 
 logger = logging.getLogger(__name__)
 root_path = rootutils.find_root(search_from=__file__, indicator=".project-root")
@@ -21,8 +23,10 @@ root_path = rootutils.find_root(search_from=__file__, indicator=".project-root")
 # ---------------------------------------------------------------------------
 # DataGal
 # ---------------------------------------------------------------------------
- 
- 
+
+
+
+
 class DataGal:
     """
     Orchestrates EDA over a CSV file using dynamically loaded plotters.
@@ -65,7 +69,7 @@ class DataGal:
             self.output_dir = Path(output_dir)
             self.output_dir.mkdir(parents=True, exist_ok=True)
  
-        self._plotter_classes: list[type[BasePlotter]] = []
+        # self._plotter_classes: list[type[BasePlotter]] = []
         self._data: pd.DataFrame | None = None
         self._cmap = None
         self._filtered_columns = []
@@ -95,8 +99,12 @@ class DataGal:
         -------
         dict mapping plotter class name → list of saved file Paths.
         """
+        self._cmap = pypalettes.load_cmap('random')
+        palette = sns.color_palette(self._cmap.colors)
+        sns.set_palette(palette)
+
         self._load_data()
-        self._load_plotters()
+        # self._load_plotters()
         plot_info = self._generate_plots()
         all_records = []
         for plotter_class_name, plot_path, kinds, columns, stats in plot_info:
@@ -134,8 +142,8 @@ class DataGal:
     # ------------------------------------------------------------------
     # Step 2 — plugin discovery
     # ------------------------------------------------------------------
- 
-    def _load_plotters(self) -> None:
+
+    def _load_plotters_deprecated(self) -> None:
         """
         Import every *.py file in `plotters_dir` and collect BasePlotter
         subclasses that have both `arity` and `accepted_kinds` defined.
@@ -211,7 +219,7 @@ class DataGal:
  
         # Enumerate combinations of sizes 1 … max_arity
         for arity in range(-1, self.max_arity + 1):
-            plotters_for_arity = [p for p in self._plotter_classes if p.arity == arity]
+            plotters_for_arity = [p for p in PLOTTER_CLASSES if p.arity == arity]
             if not plotters_for_arity:
                 continue
             logger.warning("Plotter classes for arity %d: %d", arity, len(plotters_for_arity))

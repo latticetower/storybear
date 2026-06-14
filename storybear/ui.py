@@ -106,7 +106,7 @@ class StageProcessor:
 
 
 
-def create_app(use_llm=False, use_vlm=False, remote=False):
+def create_app(use_llm=True, use_vlm=False, remote=False):
 
     # Choose the inference backend: remote (Modal HTTP services) or local models.
     inference = "storybear.remote_inference" if remote else "storybear.local_inference"
