@@ -1,6 +1,10 @@
 
 import torch
 from PIL import Image
+from transformers import AutoProcessor, AutoModelForImageTextToText
+
+from PIL import Image
+from diffusers import Flux2KleinPipeline
 
 from pathlib import Path
 from typing import Union
@@ -19,6 +23,21 @@ dtype = torch.bfloat16
 
 print("Local inference, using device:", device)
 
+flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", torch_dtype=dtype).to(device)
+if device != "cpu":
+    flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
+
+
+it2t_model_path = "openbmb/MiniCPM-V-4.6"  # or "openbmb/MiniCPM-V-4.6-Thinking"
+
+it2t_processor = AutoProcessor.from_pretrained(it2t_model_path)
+it2t_model = AutoModelForImageTextToText.from_pretrained(
+    it2t_model_path,
+    torch_dtype=torch.bfloat16,
+    attn_implementation="sdpa",
+).eval().to(device)
+
+
 def flux_i2i_func(prompt: str, file_path: Path):
     """
     Gets the prompt with the image path as an input, returns image (or image path) processed by VLM.
@@ -35,10 +54,7 @@ def flux_i2i_func(prompt: str, file_path: Path):
     #    "stephenbtl/ugly-kontext-klein-4b-lora",
     #    weight_name="ugly_kontext_klein_4b_v1.safetensors",
     #)
-    from diffusers import Flux2KleinPipeline
-    flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", torch_dtype=dtype).to(device)
-    if device != "cpu":
-        flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
+    # from diffusers import Flux2KleinPipeline
 
     reference = Image.open(file_path).convert("RGB") #.resize((1024, 1024))
     print(reference.size)
@@ -55,18 +71,6 @@ def flux_i2i_func(prompt: str, file_path: Path):
     # img.save("flux_processed.png")
 
 
-import torch
-from PIL import Image
-from transformers import AutoProcessor, AutoModelForImageTextToText
-
-it2t_model_path = "openbmb/MiniCPM-V-4.6"  # or "openbmb/MiniCPM-V-4.6-Thinking"
-
-it2t_processor = AutoProcessor.from_pretrained(it2t_model_path)
-it2t_model = AutoModelForImageTextToText.from_pretrained(
-    it2t_model_path,
-    torch_dtype=torch.bfloat16,
-    attn_implementation="sdpa",
-).eval().to(device)
 
 
 # # image1 = Image.open("flux-klein.png").convert("RGB")
