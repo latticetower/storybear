@@ -105,42 +105,7 @@ class StageProcessor:
         return f"Finished! Session hash is not available, no data"
 
 
-
-def create_app(use_llm=True, use_vlm=False, remote=False):
-
-    # Choose the inference backend: remote (Modal HTTP services) or local models.
-    inference = "storybear.remote_inference" if remote else "storybear.local_inference"
-
-    if use_llm:
-        import importlib
-        inf = importlib.import_module(inference)
-        it2t_summary_func = inf.it2t_summary_func
-        # Foodie uses the optimized pairwise compare call when the backend has one.
-        it2t_compare_func = getattr(inf, "it2t_compare_func", it2t_summary_func)
-        captionist_it2t_func = it2t_summary_func
-        foodie_it2t_func = it2t_compare_func
-        editor_it2t_func = it2t_summary_func
-    else:
-        captionist_it2t_func = None
-        foodie_it2t_func = None
-        editor_it2t_func = None
-
-    if use_vlm:
-        import importlib
-        flux_i2i_func = importlib.import_module(inference).flux_i2i_func
-        artist_i2i_func = flux_i2i_func
-    else:
-        artist_i2i_func = None
-
-    pipeline = StorybearPipeline(
-        captionist_it2t_func=captionist_it2t_func,
-        foodie_it2t_func=foodie_it2t_func,
-        editor_it2t_func=editor_it2t_func,
-        artist_i2i_func=artist_i2i_func,
-    )
-    named_stages_list = pipeline.get_stages()
-
-    # current_value = gr.State([0])
+def build_ui(named_stages_list):
     num_stages = len(named_stages_list)
     pipeline_blocks = []
     
@@ -208,5 +173,44 @@ def create_app(use_llm=True, use_vlm=False, remote=False):
         demo.load(initialize_instance, inputs=None, outputs=status_output)    
         # Clean up instance when page is closed/refreshed
         demo.unload(cleanup_instance)   
+    return demo
+
+
+def create_app(use_llm=True, use_vlm=False, remote=False):
+
+    # Choose the inference backend: remote (Modal HTTP services) or local models.
+    inference = "storybear.remote_inference" if remote else "storybear.local_inference"
+
+    if use_llm:
+        import importlib
+        inf = importlib.import_module(inference)
+        it2t_summary_func = inf.it2t_summary_func
+        # Foodie uses the optimized pairwise compare call when the backend has one.
+        it2t_compare_func = getattr(inf, "it2t_compare_func", it2t_summary_func)
+        captionist_it2t_func = it2t_summary_func
+        foodie_it2t_func = it2t_compare_func
+        editor_it2t_func = it2t_summary_func
+    else:
+        captionist_it2t_func = None
+        foodie_it2t_func = None
+        editor_it2t_func = None
+
+    if use_vlm:
+        import importlib
+        flux_i2i_func = importlib.import_module(inference).flux_i2i_func
+        artist_i2i_func = flux_i2i_func
+    else:
+        artist_i2i_func = None
+
+    pipeline = StorybearPipeline(
+        captionist_it2t_func=captionist_it2t_func,
+        foodie_it2t_func=foodie_it2t_func,
+        editor_it2t_func=editor_it2t_func,
+        artist_i2i_func=artist_i2i_func,
+    )
+    named_stages_list = pipeline.get_stages()
+
+    # current_value = gr.State([0])
+    demo = build_ui(named_stages_list)
 
     return demo
