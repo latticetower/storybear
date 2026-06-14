@@ -62,8 +62,9 @@ def infer_kind(series: pd.Series) -> ColKind:
     if pd.api.types.is_datetime64_any_dtype(series):
         return "datetime"
 
-    if pd.api.types.is_categorical_dtype(series):
+    if isinstance(series.dtype, pd.CategoricalDtype):
         return "categorical"
+
     if series.dtype == object and series.nunique(dropna=True) / max(len(series), 1) < 0.5:
         return "categorical"    
     
