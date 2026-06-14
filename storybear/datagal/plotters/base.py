@@ -67,7 +67,8 @@ def infer_kind(series: pd.Series) -> ColKind:
     if series.dtype == object and series.nunique(dropna=True) / max(len(series), 1) < 0.5:
         return "categorical"    
     
-    if series.dtype == object:
+    if series.dtype == object or series.dtype == 'str':
+        # print('in infer_kind', series.name, "object")
         texts = series.dropna()
         texts = [x.strip() for x in texts]
         dna_like = np.all([DNA_REGEX.match(x) is not None for x in texts if len(x) > 0])

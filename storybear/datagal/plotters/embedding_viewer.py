@@ -54,7 +54,7 @@ class BasicEmbeddingPlotter(BasePlotter):
         column = columns[0]
         fig, ax = plt.subplots()
         subset = data[column].dropna()
-        embeddings = self.embeddings_method(column, subset.values.flatten())
+        embeddings = self.embeddings_method(column, subset.values)
         #print(embeddings.shape)
 
         emb2d = self.get_dim_reduction(embeddings)
@@ -93,7 +93,7 @@ class BasicEmbeddingPlotter(BasePlotter):
             # print("BASIC EMBEDDING PLOTTER is_applicable column", column)
             return False
         # print("BASIC EMBEDDING PLOTTER is_applicable pick subset", column)
-        subset = data[column].dropna().values.flatten()
+        subset = data[column].dropna().values
         # print("BASIC EMBEDDING PLOTTER is_applicable pick subset", subset)
         if len(subset) < 10:
             # print("BASIC EMBEDDING PLOTTER is_applicable subset length", subset[:3])

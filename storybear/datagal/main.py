@@ -81,7 +81,7 @@ class DataGal:
         self._load_plotters()
         plot_info = self._generate_plots()
         all_records = []
-        for plotter_class_name, plot_path, columns, stats in plot_info:
+        for plotter_class_name, plot_path, kinds, columns, stats in plot_info:
             record = PlotRecord(plot_path, columns, plotter_class_name, stats)
             all_records.append(record)
         report = ReportRecord("", "", all_records)
@@ -99,7 +99,7 @@ class DataGal:
         self._load_plotters()
         plot_info = self._generate_plots()
         all_records = []
-        for plotter_class_name, plot_path, columns, stats in plot_info:
+        for plotter_class_name, plot_path, kinds, columns, stats in plot_info:
             record = PlotRecord(plot_path, columns, plotter_class_name, stats)
             all_records.append(record)
         return all_records
@@ -204,6 +204,7 @@ class DataGal:
             col: infer_kind(self._data[col]) for col in self._data.columns
         }
         logger.info("Column kinds: %s", col_kinds)
+        logger.warning("Before generation: %d columns (out of %d) in use, %s", len(self._filtered_columns), len(self._data.columns), self._filtered_columns)
  
         # results: dict[str, list[Path]] = {cls.__name__: [] for cls in self._plotter_classes}
         results = []
@@ -213,36 +214,47 @@ class DataGal:
             plotters_for_arity = [p for p in self._plotter_classes if p.arity == arity]
             if not plotters_for_arity:
                 continue
+            logger.warning("Plotter classes for arity %d: %d", arity, len(plotters_for_arity))
             if arity <= 0:
                 # process differently, since this plotter uses all available columns
                 kinds = tuple(col_kinds[c] for c in self._filtered_columns)
                 for plotter_cls in plotters_for_arity:
                     stats = self._get_plot_info(plotter_cls, list(self._filtered_columns))
-                    if stats is None:
-                        continue
-                    save_path = self._run_plotter(plotter_cls, list(self._filtered_columns))
-                    if save_path is not None:
-                        results.append((plotter_cls.__name__, save_path, kinds, stats))
+                    logger.debug("   %s with %d columns - stats status: %s", plotter_cls.__name__, len(self._filtered_columns), stats is not None)
+                    if stats is not None:
+                        results.append((plotter_cls, kinds, list(self._filtered_columns), stats))
+                    # save_path = self._run_plotter(plotter_cls, list(self._filtered_columns))
+                    # if save_path is not None:
+                    #     results.append((plotter_cls, save_path, kinds, list(self._filtered_columns), stats))
                 continue
  
             for combo in itertools.combinations(self._filtered_columns, arity):
                 kinds = tuple(col_kinds[c] for c in combo)
  
                 for plotter_cls in plotters_for_arity:
+                    logger.debug("  Plotter class %s with columns %s, kinds %s", plotter_cls.__name__, list(combo), kinds)
                     if not plotter_cls.accepts(kinds):
                         continue
                     stats = self._get_plot_info(plotter_cls, list(combo))
-                    if stats is None:
-                        continue
-                    save_path = self._run_plotter(plotter_cls, list(combo))
-                    if save_path is not None:
-                        results.append((plotter_cls.__name__, save_path, kinds, stats))
+                    logger.info("Plotter class %s with columns %s - stats status: %s", plotter_cls.__name__, list(combo), stats is not None)
+                    if stats is not None:
+                        results.append((plotter_cls, kinds, list(combo), stats))
+                    # save_path = self._run_plotter(plotter_cls, list(combo))
+                    # if save_path is not None:
+                    #     results.append((plotter_cls, save_path, kinds, list(combo), stats))
 
+        logger.warning("Before filtering: %d plot(s)", len(results))
         results = self._plot_filter.get_most_distinct(results)
- 
-        total = len(results)
-        logger.info("Done. %d plot(s) saved to %s", total, self.output_dir)
-        return results
+        # actually save plots:
+        saved_results = []
+        for plotter_cls, kinds, plot_columns, stats in results:
+            save_path = self._run_plotter(plotter_cls, plot_columns)
+            if save_path is not None:
+                saved_results.append((plotter_cls.__name__, save_path, kinds, plot_columns, stats))
+
+        total = len(saved_results)
+        logger.warning("Done. %d plot(s) saved to %s", total, self.output_dir)
+        return saved_results
  
     def _run_plotter(self, plotter_cls: type[BasePlotter], columns: list[str]) -> Path | None:
         """Instantiate the plotter, call plot(), and save the figure."""
