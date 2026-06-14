@@ -36,7 +36,8 @@ dependencies = [
     "modal",
     "openai",
     "requests",
-    "pillow"
+    "pillow",
+    "pytest"
 ]
 
 readme = "readme.md"
@@ -60,3 +61,6 @@ classifiers = [
 
 [project.urls]
 Repository = "https://github.com/latticetower/storybear.git"
+
+[pytest]
+testpaths = ["tests"]
