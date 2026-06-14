@@ -52,7 +52,7 @@ class StageProcessor:
         return len(self.named_stages_list)
 
     def __getitem__(self, i):
-        stage_name, stage_func = self.named_stages_list[i]
+        stage_name, stage_description, stage_func = self.named_stages_list[i]
 
         def process_step(input_block, request: gr.Request, progress=gr.Progress()):
             if not input_block:
@@ -75,6 +75,8 @@ class StageProcessor:
                 instances[request.session_hash]['report'] = new_report
             # print("after:", self.stage_name, self.current_value)
             print(input_block)
+            for record in new_report.plot_record_list:
+                print(str(record))
             text = ""
             for i in progress.tqdm(np.arange(5)):
                 text += f"{i}"
@@ -128,10 +130,10 @@ def build_ui(named_stages_list):
                         "Current stage is executed with the progress bar. \n"
                         "To rerun the pipeline, first click on 'Clear button' below"
                     ))
-                    for i, (step_name, step_func) in enumerate(named_stages_list):
+                    for i, (stage_name, stage_description, stage_func) in enumerate(named_stages_list):
                         # for i in range(num_steps):
                         pipeline_blocks.append(
-                            gr.Checkbox(value=False, label=f"Stage {i}: {step_name}", interactive=False)
+                            gr.Checkbox(value=False, label=f"Stage {i}: {stage_name} - {stage_description}", interactive=False)
                         )
                     clear_checkboxes_button = gr.ClearButton()
 
@@ -176,7 +178,7 @@ def build_ui(named_stages_list):
     return demo
 
 
-def create_app(use_llm=True, use_vlm=False, remote=False):
+def create_app(use_llm=True, use_vlm=True, remote=False):
 
     # Choose the inference backend: remote (Modal HTTP services) or local models.
     inference = "storybear.remote_inference" if remote else "storybear.local_inference"

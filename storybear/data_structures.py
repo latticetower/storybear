@@ -73,6 +73,15 @@ class PlotRecord:
             position = record.position
         return PlotRecord(plot_path, columns, plotter_class, stats, caption, ranking, position)
 
+    def __str__(self):
+        return (
+            f"Record {self.plotter_class} at {self.plot_path}\n"
+            f"{self.columns}, {self.stats}\n"
+            f"Caption: {self.caption}\n"
+            f"Ranking: {self.ranking}\n"
+        )
+        pass
+
 
 
 @dataclass

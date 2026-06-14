@@ -157,15 +157,15 @@ class StorybearPipeline:
     # ------------------------------------------------------------------
     # Main entry point
     # ------------------------------------------------------------------
-    def get_stages(self) -> List[Tuple[str, Union[DataGal, _LLMMixin, Typography]]]:
+    def get_stages(self) -> List[Tuple[str, Union[DataGal, _LLMMixin, BasicPrinter]]]:
         return [
-            ('DataGal', self._datagal),
-            ('Captionist', self._captionist),
-            ('Foodie', self._foodie),
-            ('Secretary', self._secretary),
-            ('Editor', self._editor),
-            ('Junior', self._junior),
-            ('Artist', self._artist),
+            ('DataGal', 'generates plots and filters them', self._datagal),
+            ('Captionist', 'draws plot captions with LLM', self._captionist),
+            ('Foodie', 'reranker - selects most interesting plots', self._foodie),
+            ('Secretary', 'helper - filters plots based on their rating', self._secretary),
+            ('Editor', 'generates header and lead for the report', self._editor),
+            ('Junior', 'polishes everything (this part is unfinished)', self._junior),
+            ('Artist', 'creatively morphs plots to something else', self._artist),
         ]
         pass
 

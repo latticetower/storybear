@@ -82,6 +82,7 @@ class DataGal:
         if not isinstance(df, pd.DataFrame):
             raise TypeError(f"DataGal: accepts dataframe in __call__, got {type(df)}")
         self._data = df
+        self._filtered_columns = self._apply_columns_filters(self._data)
         # self._load_plotters()
         plot_info = self._generate_plots()
         all_records = []
@@ -119,7 +120,7 @@ class DataGal:
         if df is not None:
             self._data = df
         elif self.csv_path is None:
-            logger.info("DataGal, _load_data: csv_path is None, do nothing")
+            logger.warning("DataGal, _load_data: csv_path is None, do nothing")
             return
         logger.info("Loading CSV: %s", self.csv_path)
         self._data = pd.read_csv(self.csv_path)
@@ -143,8 +144,8 @@ class DataGal:
     # ------------------------------------------------------------------
  
     def _generate_plots(self) -> dict[str, list[Path]]:
-        assert self._data is not None, "Data not loaded."
- 
+        assert self._data is not None, "Data is not loaded."
+        logger.warning("Dataframe:", self._data) 
         # Pre-compute the ColKind for every column once
         col_kinds: dict[str, ColKind] = {
             col: infer_kind(self._data[col]) for col in self._data.columns
