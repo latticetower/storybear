@@ -12,6 +12,10 @@
 # fall back to the STORYBEAR_* vars the pipeline already uses:
 #   VLLM_URL=...  LLAMACPP_URL=...  FLUX_URL=...  ./modal/coldstart.sh
 #
+# The endpoints require Modal proxy auth, so provide a proxy auth token. These
+# fall back to the STORYBEAR_* vars the pipeline uses:
+#   MODAL_KEY=wk-...  MODAL_SECRET=ws-...  ./modal/coldstart.sh
+#
 # Tunables (env):
 #   DEADLINE      overall wait per service, seconds (default 900)
 #   INTERVAL      seconds between polls (default 5)
@@ -29,6 +33,20 @@ REQ_TIMEOUT="${REQ_TIMEOUT:-30}"
 VLLM_URL="${VLLM_URL:-${STORYBEAR_VLM_URL:-}}"
 LLAMACPP_URL="${LLAMACPP_URL:-}"
 FLUX_URL="${FLUX_URL:-${STORYBEAR_FLUX_URL:-}}"
+
+# Proxy auth token: explicit override > STORYBEAR_* fallback. Required because
+# the endpoints enforce proxy auth; without it every probe gets HTTP 401.
+MODAL_KEY="${MODAL_KEY:-${STORYBEAR_MODAL_KEY:-}}"
+MODAL_SECRET="${MODAL_SECRET:-${STORYBEAR_MODAL_SECRET:-}}"
+
+# Build curl header args once; both id and secret must be present to authenticate.
+AUTH_ARGS=()
+if [[ -n "$MODAL_KEY" && -n "$MODAL_SECRET" ]]; then
+  AUTH_ARGS=(-H "Modal-Key: $MODAL_KEY" -H "Modal-Secret: $MODAL_SECRET")
+else
+  echo "WARNING: MODAL_KEY/MODAL_SECRET not set; probes will get HTTP 401 from the" >&2
+  echo "         auth-protected endpoints. Set them (or STORYBEAR_MODAL_KEY/SECRET)." >&2
+fi
 
 build_url() { printf 'https://%s--%s.modal.run' "$WORKSPACE" "$1"; }
 
@@ -57,11 +75,17 @@ wait_for() {
   start=$(date +%s)
   echo "[$name] cold starting -> $probe"
   while :; do
-    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time "$REQ_TIMEOUT" "$probe")
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time "$REQ_TIMEOUT" \
+      "${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"}" "$probe")
     if [[ "$code" == "200" ]]; then
       now=$(date +%s)
       echo "[$name] READY in $((now - start))s"
       return 0
+    fi
+    if [[ "$code" == "401" || "$code" == "403" ]]; then
+      echo "[$name] ERROR HTTP $code at $probe — missing or invalid proxy auth token." >&2
+      echo "[$name] Set MODAL_KEY/MODAL_SECRET (or STORYBEAR_MODAL_KEY/SECRET)." >&2
+      return 1
     fi
     if [[ "$code" == "404" ]]; then
       echo "[$name] ERROR HTTP 404 at $probe — likely 'modal-http: invalid function call'." >&2
