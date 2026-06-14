@@ -75,6 +75,8 @@ class DataGal:
     # Public API
     # ------------------------------------------------------------------
     def __call__(self, df: pd.DataFrame) -> ReportRecord:
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError(f"DataGal: accepts dataframe in __call__, got {type(df)}")
         self._data = df
         self._load_plotters()
         plot_info = self._generate_plots()
