@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.cluster import k_means
 from sklearn.neighbors import NearestNeighbors
 from typing import List
+import pandas as pd
 from collections import OrderedDict
 
 
@@ -16,8 +17,18 @@ def filter_id_columns(columns_list: List[str]) -> List[str]:
         )
     ]
 
+def filter_constant_columns(df: pd.DataFrame, columns_list: List[str]) -> List[str]:
+    sel_columns = []
+    for column in columns_list:
+        subset = df[column].dropna()
+        if len(subset) < 1:
+            continue
+        if subset.nunique() < 2:
+            continue
+        sel_columns.append(column)
+    return sel_columns
 
-def filter_correlated_columns(columns_list: List[str]) -> List[str]:
+def filter_correlated_columns(df: pd.DataFrame, columns_list: List[str]) -> List[str]:
     # TODO: needs implementing
     return columns_list
 

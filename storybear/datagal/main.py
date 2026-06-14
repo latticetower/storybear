@@ -15,7 +15,7 @@ import seaborn as sns
 
 from ..data_structures import PlotRecord, ReportRecord
 from .plotters.base import BasePlotter, infer_kind, ColKind
-from .filters import TextFilter, filter_id_columns, filter_correlated_columns
+from .filters import TextFilter, filter_id_columns, filter_constant_columns
 # from .plotters import *
 from .plotters import PLOTTER_CLASSES
 
@@ -134,6 +134,7 @@ class DataGal:
         default_columns = df.columns
         # first: filter columns with id in names
         default_columns = filter_id_columns(default_columns)
+        default_columns = filter_constant_columns(df, default_columns)
         # default_columns = filter_correlated_columns(default_columns)
         return default_columns
   

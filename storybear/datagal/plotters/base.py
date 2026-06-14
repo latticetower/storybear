@@ -72,10 +72,10 @@ def infer_kind(series: pd.Series) -> ColKind:
         # print('in infer_kind', series.name, "object")
         texts = series.dropna()
         texts = [x.strip() for x in texts]
-        dna_like = np.all([DNA_REGEX.match(x) is not None for x in texts if len(x) > 0])
+        dna_like = np.all([DNA_REGEX.fullmatch(x) is not None for x in texts if len(x) > 0])
         if dna_like:
             return 'dna'
-        protein_like = np.all([PROT_REGEX.match(x) is not None for x in texts if len(x) > 0])
+        protein_like = np.all([PROT_REGEX.fullmatch(x) is not None for x in texts if len(x) > 0])
         if protein_like:
             return 'protein'
 

@@ -5,6 +5,7 @@ import warnings
 
 from .pipeline import StorybearPipeline
 from .data import download_example_data
+from .datagal.plotters.base import infer_kind
 
 
 
@@ -62,7 +63,7 @@ def main_cli(csv, tempdir, captionist, foodie, editor, artist, show_warnings, re
     pipeline.run()
     
 
-# if __name__ == '__main__':
-#     print("Run cli as a script")
-#     main_cli()
+if __name__ == '__main__':
+    print("Run cli as a script")
+    main_cli()
 
