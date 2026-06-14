@@ -11,12 +11,13 @@ from storybear.data_structures import PlotRecord
 
 if torch.backends.mps.is_available():
     device = "mps"
-if torch.cuda.is_available():
+elif torch.cuda.is_available():
     device = "cuda"
 else:
     device = "cpu"
 dtype = torch.bfloat16
 
+print("Local inference, using device:", device)
 
 def flux_i2i_func(prompt: str, file_path: Path):
     """
