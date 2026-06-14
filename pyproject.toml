@@ -32,7 +32,6 @@ dependencies = [
     "sentence_transformers",
     "umap-learn",
     "partialsmiles",
-    "pypalettes",
     "fpdf2",
     "modal",
     "openai",
