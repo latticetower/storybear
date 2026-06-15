@@ -76,7 +76,7 @@ class Artist(_LLMMixin):
     def process_all(self, report: ReportRecord) -> ReportRecord:
         """Post-process all records, preserving their order."""
         new_plot_record_list = [self.process(r) for r in tqdm(report.plot_record_list)]
-        return ReportRecord(report.header, report.lead, new_plot_record_list)
+        return ReportRecord(report.header, report.lead, new_plot_record_list, report.discussion)
 
     def _build_prompt(self, record: PlotRecord) -> str:
         prompt_text = (
@@ -84,9 +84,8 @@ class Artist(_LLMMixin):
             "Make it look like: a quick sketch using a cheap marker or crayon, messy, " \
             "rough, childlike style, bad perspective and awkward proportions, slightly " \
             "exaggerated features. \nAdd: simple cartoon background (like elven village, " \
-            f"trees, squirrel delivery, probably some whimsical creatures who could represent some of the following terms "\
-            f"in a magical realm: {", ".join(record.columns)}"\
-            "), random sketchy lines and details, uneven coloring and " \
+            f"trees, squirrel delivery, probably some whimsical creatures or birds who live in the whimsical magical realm),"\
+            "random sketchy lines and details, uneven coloring and " \
             "visible strokes. \nStyle: looks like a lazy drawing, not polished humorous and a bit " \
             "stupid-looking meme-like, casual, internet style, with a bit of magic.\nDo NOT: make it realistic"
         )

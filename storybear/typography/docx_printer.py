@@ -66,6 +66,11 @@ class DocxPrinter(BasicPrinter):
 
         for record in sorted(report.plot_record_list, key=lambda r: r.position):
             self._add_plot_section(doc, record)
+        doc.add_heading("Discussion", level=1)
+        lead_para = doc.add_paragraph()
+        run = lead_para.add_run(report.discussion)
+        run.italic = True
+        run.font.size = Pt(12)
 
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         doc.save(self.output_path)

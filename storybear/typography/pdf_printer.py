@@ -90,6 +90,12 @@ class PdfPrinter(BasicPrinter):
         for record in sorted(report.plot_record_list, key=lambda r: r.position):
             self._add_plot_section(pdf, record)
 
+        pdf.set_font("DejaVuSans", size=14)
+        pdf.write(text="Discussion")
+        pdf.ln(10)
+        pdf.write(text=report.discussion)
+        pdf.ln(20)
+
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         # doc.save(self.output_path)
         pdf.output(self.output_path)

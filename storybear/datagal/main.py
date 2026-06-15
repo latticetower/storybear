@@ -237,7 +237,7 @@ class DataGal:
                     plotter_cls.__name__,
                     columns,
                 )
-                return None
+                return None, "no name"
             #fig.savefig(save_path, bbox_inches="tight")
             # _close_figure(fig)
             logger.debug("Saved: %s", save_path)

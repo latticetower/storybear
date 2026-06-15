@@ -185,13 +185,22 @@ def build_ui(named_stages_list, printer):
                     report = instances[request.session_hash]['report']
                     with gr.Row("Header line"):
                         blocks = [
-                            gr.Markdown(f"# {report.header}"),
-                            gr.Markdown(f"## {report.lead}"),
+                            gr.Markdown((
+                                f"# {report.header}\n"
+                                f"## {report.lead}"
+                            )),
+                            
                         ]
                     for i, record in enumerate(report.plot_record_list):
                         text = gr.Label(record.caption)
                         im = gr.Image(record.plot_path)
                         blocks.append(gr.Row(f"Row_{i}", [text, im]))
+
+                    if len(report.discussion) > 0:
+                        blocks.append(gr.Markdown((
+                            f"# Discussion\n"
+                            f"{report.discussion}"
+                        )))
             
 
         clear_checkboxes_button.click(call_clear_checkboxes, pipeline_blocks, pipeline_blocks)
@@ -222,7 +231,7 @@ def build_ui(named_stages_list, printer):
     return demo
 
 
-def create_app(use_llm=True, use_vlm=False, remote=True):
+def create_app(use_llm=True, use_vlm=True, remote=True):
 
     # Choose the inference backend: remote (Modal HTTP services) or local models.
     inference = "storybear.remote_inference" if remote else "storybear.local_inference"

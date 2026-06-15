@@ -36,7 +36,7 @@ class Junior(_LLMMixin):
         raw = self._call_llm(prompt, report_record.plot_record_list)
         order = self._parse_order(raw, len(report_record.plot_record_list))
         new_record_list = [PlotRecord.from_record(report_record.plot_record_list[i], position=pos) for pos, i in enumerate(order)]
-        return ReportRecord(report_record.header, report_record.lead, new_record_list) 
+        return ReportRecord(report_record.header, report_record.lead, new_record_list, report_record.discussion) 
 
     def _build_prompt(self, meta: ReportRecord) -> str:
         summaries = "\n".join(
