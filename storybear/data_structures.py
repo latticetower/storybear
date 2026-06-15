@@ -46,6 +46,7 @@ class PlotRecord:
     caption: Union[str, None] = None
     ranking: float = - 1.0  # R — higher is more interesting/informative
     position: int = -1  # narrative order assigned by Junior
+    mod_path: Path | None = None
     
     @property
     def has_caption(self):
@@ -60,7 +61,7 @@ class PlotRecord:
         return self.position >= 0
 
     @staticmethod
-    def from_record(record, caption=None, ranking=-1., position=-1):
+    def from_record(record, caption=None, ranking=-1., position=-1, mod_path=None):
         plot_path = record.plot_path
         columns = record.columns
         plotter_class = record.plotter_class
@@ -71,7 +72,9 @@ class PlotRecord:
             ranking = record.ranking
         if position < 0:
             position = record.position
-        return PlotRecord(plot_path, columns, plotter_class, stats, caption, ranking, position)
+        if mod_path is None:
+            mod_path = record.mod_path
+        return PlotRecord(plot_path, columns, plotter_class, stats, caption, ranking, position, mod_path)
 
     def __str__(self):
         return (

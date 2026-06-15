@@ -64,10 +64,11 @@ def flux_i2i_func(prompt: str, file_path: Path):
         num_inference_steps=4, 
         guidance_scale=4.0
     ).images[0]
+    save_file_path = file_path.parent / (file_path.stem + "_mod.png")
 
     # print(img)
-    img.save(file_path)
-    return img
+    img.save(save_file_path)
+    return save_file_path
     # img.save("flux_processed.png")
 
 

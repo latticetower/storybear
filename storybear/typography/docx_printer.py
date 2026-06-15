@@ -86,10 +86,11 @@ class DocxPrinter(BasicPrinter):
 
     def _add_plot_section(self, doc: Document, record: PlotRecord) -> None:
         # Plot image
-        if record.plot_path.exists():
-            doc.add_picture(str(record.plot_path), width=Inches(self.image_width_inches))
+        plot_path = record.plot_path if record.mod_path is None else record.mod_path
+        if plot_path.exists():
+            doc.add_picture(str(plot_path), width=Inches(self.image_width_inches))
         else:
-            doc.add_paragraph(f"[Plot not found: {record.plot_path.name}]")
+            doc.add_paragraph(f"[Plot not found: {plot_path.name}]")
 
         # Caption
         caption_para = doc.add_paragraph()

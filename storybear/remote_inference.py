@@ -321,8 +321,9 @@ def flux_i2i_func(prompt: str, file_path: Union[str, Path]) -> Path:
             timeout=_timeout(),
         )
     response.raise_for_status()
+    save_file_path = file_path.parent / (file_path.stem + "_mod.png")
 
-    with open(file_path, "wb") as f:
+    with open(save_file_path, "wb") as f:
         f.write(response.content)
-    logger.info("Artist: wrote edited image to %s", file_path)
-    return file_path
+    logger.info("Artist: wrote edited image to %s", save_file_path)
+    return save_file_path

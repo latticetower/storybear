@@ -65,7 +65,8 @@ class Artist(_LLMMixin):
         # record = PlotRecord(ordered_record)
         prompt = self._build_prompt(record)
         try:
-            raw = self._call_llm_image2image(prompt, record.plot_path)
+            save_image_path = self._call_llm_image2image(prompt, record.plot_path)
+            record.mod_path = save_image_path
             # instructions = self._parse_json(raw)
             # self._apply_instructions(record.plot_path, instructions)
         except Exception as exc:
@@ -111,8 +112,8 @@ class Artist(_LLMMixin):
     def _call_llm_image2image(self, prompt: str, image_path: Path) -> Path:
         if self._llm_image2image_func is None:
             return image_path
-        img = self._llm_image2image_func(prompt, image_path)
-        print(img)
-        return image_path
+        save_image_path = self._llm_image2image_func(prompt, image_path)
+        # print(img)
+        return save_image_path
 
 

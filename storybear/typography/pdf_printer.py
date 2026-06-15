@@ -120,10 +120,10 @@ class PdfPrinter(BasicPrinter):
     def _add_plot_section(self, pdf: FPDF, record: PlotRecord) -> None:
         # Plot image
         pdf.set_font(style="I")
+        plot_path = record.plot_path if record.mod_path is None else record.mod_path
         
-        
-        if record.plot_path.exists():
-            img = Image.open(record.plot_path)
+        if plot_path.exists():
+            img = Image.open(plot_path)
             # img = img.resize((96, 96), resample=Image.NEAREST)
             pdf.image(img, h=pdf.eph/2, w=pdf.epw, keep_aspect_ratio=True)
             pdf.write(text=record.caption)
@@ -131,7 +131,7 @@ class PdfPrinter(BasicPrinter):
             # doc.add_picture(str(record.plot_path), width=Inches(self.image_width_inches))
         else:
             # doc.add_paragraph(f"[Plot not found: {record.plot_path.name}]")
-            pdf.write(f"[Plot not found: {record.plot_path.name}]")
+            pdf.write(f"[Plot not found: {plot_path.name}]")
         # pdf.ln(20)
 
         # Caption
