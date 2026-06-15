@@ -65,8 +65,8 @@ def infer_kind(series: pd.Series) -> ColKind:
     if isinstance(series.dtype, pd.CategoricalDtype):
         return "categorical"
 
-    if series.dtype == object and series.nunique(dropna=True) / max(len(series), 1) < 0.5:
-        return "categorical"    
+    if series.nunique(dropna=True) < max(0.2*max(len(series), 1), 10):
+        return "categorical"
     
     if series.dtype == object or series.dtype == 'str':
         # print('in infer_kind', series.name, "object")

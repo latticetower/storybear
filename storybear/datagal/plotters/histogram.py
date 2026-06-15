@@ -14,6 +14,7 @@ from storybear.datagal.plotters.base import BasePlotter
  
  
 class HistogramPlotter(BasePlotter):
+    PLOT_NAME = "Histogram, basic"
     arity = 1
     accepted_kinds = (("numeric",),)
  
@@ -59,16 +60,18 @@ class HistogramPlotter(BasePlotter):
         values = data[col].dropna()
 
         stat_info = OrderedDict()
+        stat_info['Name'] = self.PLOT_NAME
         stat_info["Number of points"] = len(values)
-        stat_info[f"Mean of {col} values"] = values.mean()
-        stat_info[f"Standard deviation of {col} values"] = values.std()
+        stat_info[f"Mean"] = values.mean()
+        stat_info[f"Standard deviation"] = values.std()
         return stat_info
     
 
  
 class LengthHistogramPlotter(BasePlotter):
+    PLOT_NAME = "Histogram of lengths, proteins"
     arity = 1
-    accepted_kinds = (("text",),)
+    accepted_kinds = (("protein",),)
  
     def plot(self, data: pd.DataFrame, columns: List[str], save_path: Path, cmap=None) -> Path:
         col = columns[0]
@@ -123,7 +126,8 @@ class LengthHistogramPlotter(BasePlotter):
             return None
         
         stat_info = OrderedDict()
+        stat_info['Name'] = self.PLOT_NAME
         stat_info["Number of points"] = len(values)
-        stat_info[f"Mean of {col} values"] = length_mean
-        stat_info[f"Standard deviation of {col} values"] = length_std
+        stat_info[f"Mean"] = length_mean
+        stat_info[f"Standard deviation"] = length_std
         return stat_info

@@ -16,13 +16,15 @@ from storybear.utils import get_2d_pca, get_2d_umap, is_valid_smiles
 
 
 class BasicEmbeddingPlotter(BasePlotter):
+    PLOT_NAME = "Embedding plot"
     arity = 1
     accepted_kinds = (("text",))
 
-    def __init__(self, dim_reduction_method="pca"):
+    def __init__(self, dim_reduction_method="pca", debug: bool=False):
         self.embeddings_method = self.compute_embeddings
         self.dim_reduction_method = dim_reduction_method
         self.model_name = "sentence-transformers/all-MiniLM-L6-v2"
+        self.debug = debug
 
     def get_dim_reduction(self, embeddings):
         if self.dim_reduction_method.lower() == "umap":
@@ -30,11 +32,11 @@ class BasicEmbeddingPlotter(BasePlotter):
         # by default use PCA
         return get_2d_pca(embeddings)
         
-    def compute_embeddings(self, name: str, seq_list: List[str]) -> np.array:
+    def compute_embeddings(self, name: str, seq_list: List[str], output_dir: Path) -> np.array:
         # unique_seq_list = np.unique(seq_list)
         # TODO: add optimisations - skipped for now
         model_prefix = self.model_name.replace("/", "_")
-        npz_path = self.output_dir / (model_prefix + "_" + name + ".npz")
+        npz_path = output_dir / (model_prefix + "_" + name + ".npz")
         if npz_path.exists():
             with np.load(npz_path) as npz_data:
                 if 'embeddings' in npz_data.keys():
@@ -51,13 +53,15 @@ class BasicEmbeddingPlotter(BasePlotter):
 
     def plot(self, data, columns, save_path: Path, cmap=None) -> Tuple[Path, str]:
         # print("plot called", columns)
+        save_path = Path(save_path)
         column = columns[0]
         fig, ax = plt.subplots()
         fig.patch.set_alpha(0.0)
         ax.patch.set_alpha(0.5)
 
         subset = data[column].dropna()
-        embeddings = self.embeddings_method(column, subset.values)
+        output_dir = save_path.parent
+        embeddings = self.embeddings_method(column, list(subset.values), output_dir)
         #print(embeddings.shape)
 
         emb2d = self.get_dim_reduction(embeddings)
@@ -113,10 +117,12 @@ class BasicEmbeddingPlotter(BasePlotter):
             return None
 
         column = columns[0]
-        subset = data[column].dropna()
-        unique_values = subset.unique()
+        subset = list(data[column].dropna().values)
+        unique_values = np.unique(subset)
         stat_info = OrderedDict()
-        stat_info["Number of unique texts"] = len(unique_values)
+        stat_info['Name'] = self.PLOT_NAME
+        stat_info["Number of points"] = len(subset)
+        stat_info["Number of unique values"] = len(unique_values)
         # stat_info[f"Mean of {x_col} values"] = subset[x_col].mean()
         # stat_info[f"Standard deviation of {x_col} values"] = subset[x_col].std()
         # stat_info[f"Mean of {y_col} values"] = subset[y_col].mean()
@@ -125,16 +131,18 @@ class BasicEmbeddingPlotter(BasePlotter):
     
 
 class ProteinEmbeddingPlotter(BasicEmbeddingPlotter):
+    PLOT_NAME = "Embedding plot, proteins"
     accepted_kinds = (("protein",))
 
     PROT_REGEX = re.compile('[ACDEFGHIKLMNPQRSTVWYXBZJ]+') 
     # TODO: Needs fixing. This is a simple, yet problematic. 
     # i.e., I don't explicitly check at the moment if the string is RNA or protein or anything else
 
-    def __init__(self):
+    def __init__(self, debug=False):
         self.embeddings_method = self.compute_embeddings
         self.dim_reduction_method = "PCA"
         self.model_name = "facebook/esm2_t6_8M_UR50D"
+        self.debug = debug
         # print("PROTEIN EMBEDDING PLOTTER RUN")
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
@@ -153,16 +161,18 @@ class ProteinEmbeddingPlotter(BasicEmbeddingPlotter):
 
 
 class DNAEmbeddingPlotter(BasicEmbeddingPlotter):
+    PLOT_NAME = "Embedding plot, DNA/RNA"
     accepted_kinds = (("dna",))
 
     DNA_REGEX = re.compile('[ACGTU]+')
     # TODO: Needs fixing. This is a simple, yet problematic. 
     # i.e., I don't explicitly check at the moment if the string is RNA or protein or anything else
 
-    def __init__(self):
+    def __init__(self, debug: bool=False):
         self.embeddings_method = self.compute_embeddings
         self.dim_reduction_method = "PCA"
         self.model_name = "RaphaelMourad/Mistral-DNA-v1-138M-bacteria" 
+        self.debug = False
         # random relatively small default from HF
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
@@ -180,12 +190,14 @@ class DNAEmbeddingPlotter(BasicEmbeddingPlotter):
 
 
 class ChemEmbeddingPlotter(BasicEmbeddingPlotter):
+    PLOT_NAME = "Embedding plot, SMILES"
     accepted_kinds = (("smiles",))
 
-    def __init__(self):
+    def __init__(self, debug:bool = False):
         self.embeddings_method = self.compute_embeddings
         self.dim_reduction_method = "PCA"
         self.model_name = "DeepChem/ChemBERTa-10M-MLM"
+        self.debug = debug
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if not super().is_applicable(data, columns):
@@ -206,13 +218,15 @@ class ChemEmbeddingPlotter(BasicEmbeddingPlotter):
 
 
 class BasicColoredEmbeddingPlotter(BasePlotter):
+    PLOT_NAME = "Colored embedding plot"
     arity = 2
     accepted_kinds = (("text", 'categorical'))
 
-    def __init__(self, dim_reduction_method="pca"):
+    def __init__(self, dim_reduction_method="pca", debug=False):
         self.embeddings_method = self.compute_embeddings
         self.dim_reduction_method = dim_reduction_method
         self.model_name = "sentence-transformers/all-MiniLM-L6-v2"
+        self.debug = debug
 
     def get_dim_reduction(self, embeddings):
         if self.dim_reduction_method.lower() == "umap":
@@ -220,11 +234,11 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         # by default use PCA
         return get_2d_pca(embeddings)
         
-    def compute_embeddings(self, name: str, seq_list: List[str]) -> np.array:
+    def compute_embeddings(self, name: str, seq_list: List[str], output_dir: Path) -> np.array:
         # unique_seq_list = np.unique(seq_list)
         # TODO: add optimisations - skipped for now
         model_prefix = self.model_name.replace("/", "_")
-        npz_path = self.output_dir / (model_prefix + "_" + name + ".npz")
+        npz_path = output_dir / (model_prefix + "_" + name + ".npz")
         if npz_path.exists():
             with np.load(npz_path) as npz_data:
                 if 'embeddings' in npz_data.keys():
@@ -251,9 +265,10 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         hue_values = subset.values[:, 1]
 
         seq_list = list(data[x_column].dropna())
+        output_dir = save_path.parent
 
         # print("plot", len(seq_list), len(text_values))
-        embeddings = self.embeddings_method(x_column, seq_list)
+        embeddings = self.embeddings_method(x_column, seq_list, output_dir)
         if len(seq_list) != len(text_values):
             seq2embedding = {seq: emb for seq, emb in zip(seq_list, embeddings)}
             embeddings = np.stack([seq2embedding[x] for x in text_values])
@@ -320,8 +335,12 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         x_column, y_column = columns
         subset = data[[x_column, y_column]].dropna()
         unique_values = np.unique(subset.values[:, 0])
+
         stat_info = OrderedDict()
-        stat_info["Number of unique texts"] = len(unique_values)
+        stat_info['Name'] = self.PLOT_NAME
+        stat_info["Number of points"] = len(subset)
+        stat_info["Number of unique values"] = len(unique_values)
+        
         # stat_info[f"Mean of {x_col} values"] = subset[x_col].mean()
         # stat_info[f"Standard deviation of {x_col} values"] = subset[x_col].std()
         # stat_info[f"Mean of {y_col} values"] = subset[y_col].mean()
@@ -330,16 +349,18 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
     
 
 class ColoredProteinEmbeddingPlotter(BasicColoredEmbeddingPlotter):
+    PLOT_NAME = "Colored embedding plot, proteins"
     accepted_kinds = (("protein", 'categorical'))
 
     PROT_REGEX = re.compile('[ACDEFGHIKLMNPQRSTVWYXBZJ]+') 
     # TODO: Needs fixing. This is a simple, yet problematic. 
     # i.e., I don't explicitly check at the moment if the string is RNA or protein or anything else
 
-    def __init__(self):
+    def __init__(self, debug: bool=False):
         self.embeddings_method = self.compute_embeddings
         self.dim_reduction_method = "PCA"
         self.model_name = "facebook/esm2_t6_8M_UR50D"
+        self.debug = debug
         # print("PROTEIN EMBEDDING PLOTTER RUN")
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
@@ -360,6 +381,7 @@ class ColoredProteinEmbeddingPlotter(BasicColoredEmbeddingPlotter):
 
 
 class ColoredDNAEmbeddingPlotter(BasicColoredEmbeddingPlotter):
+    PLOT_NAME = "Colored embedding plot, DNA/RNA"
     accepted_kinds = (("dna", 'categorical'))
     DNA_REGEX = re.compile('[ACGTU]+') 
     # TODO: Needs fixing. This is a simple, yet problematic. 
@@ -386,12 +408,14 @@ class ColoredDNAEmbeddingPlotter(BasicColoredEmbeddingPlotter):
 
 
 class ColoredChemEmbeddingPlotter(BasicColoredEmbeddingPlotter):
+    PLOT_NAME = "Colored embedding plot, SMILES"
     accepted_kinds = (("smiles", 'categorical'))
 
-    def __init__(self):
+    def __init__(self, debug: bool=False):
         self.embeddings_method = self.compute_embeddings
         self.dim_reduction_method = "PCA"
         self.model_name = "DeepChem/ChemBERTa-10M-MLM"
+        self.debug = debug
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if not super().is_applicable(data, columns):
