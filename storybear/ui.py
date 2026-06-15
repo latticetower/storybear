@@ -146,12 +146,14 @@ def build_ui(named_stages_list, printer):
     pipeline_blocks = []
     
     with gr.Blocks(title="storybear") as demo:
-        gr.Markdown((
-            "## STORYBEAR: from science to fairytale via agent-assisted storytelling\n"
-            "![project logo](https://github.com/latticetower/storybear/blob/dev/assets/storybear-logo.png)"
-        ))
+        
         with gr.Row("Parent container1"):
-            gr.Image("https://github.com/latticetower/storybear/blob/dev/assets/storybear-logo.png")
+            gr.Markdown((
+            "# STORYBEAR: from science to fairytale via agent-assisted storytelling"
+            ))
+            from PIL import Image
+            img = Image.open("./assets/storybear-logo.png")
+            gr.Image(img)
             status_output = gr.Label(label="Status")
 
         
