@@ -123,7 +123,7 @@ class StageProcessor:
             report = instances[request.session_hash]['report']
             pdf_file = self.printer(report)
             return "File saved to pdf", pdf_file.as_posix()
-        return "File couldn't be saved, there is no session info", None
+        return "File couldn't be saved, there is no session info", gr.skips()
 
 
     def finish_job(self, input_block, request: gr.Request):
