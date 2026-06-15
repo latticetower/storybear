@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Union
 from typing import List, Tuple
 # from llama_cpp import Llama
-
+from storybear.utils import klein_size
 from storybear.data_structures import PlotRecord
 
 if torch.backends.mps.is_available():
@@ -55,14 +55,27 @@ def flux_i2i_func(prompt: str, file_path: Path):
     #    weight_name="ugly_kontext_klein_4b_v1.safetensors",
     #)
     # from diffusers import Flux2KleinPipeline
+    from PIL import Image
+    file_path = Path(file_path)
+    reference = Image.open(file_path).convert("RGBA") #.resize((1024, 1024))
+    
+    save_file_path = file_path.parent / (file_path.stem + "_mod.png")
+    
+    # img = Image.open(file_path).convert("RGBA")
+    w, h = klein_size(reference.size)
+    if reference.size != (w, h):
+        reference = reference.resize((w, h), Image.LANCZOS)
+    # img.thumbnail((512, 512))
+    # img.save(file_path)
 
-    reference = Image.open(file_path).convert("RGB") #.resize((1024, 1024))
+    reference.save(save_file_path)
+    
     print(reference.size)
     img = flux_pipe(
         prompt=prompt, 
         image=reference, 
         num_inference_steps=4, 
-        guidance_scale=4.0
+        guidance_scale=1.0
     ).images[0]
     save_file_path = file_path.parent / (file_path.stem + "_mod.png")
 

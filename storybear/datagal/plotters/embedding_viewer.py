@@ -53,8 +53,8 @@ class BasicEmbeddingPlotter(BasePlotter):
         # print("plot called", columns)
         column = columns[0]
         fig, ax = plt.subplots()
-        fig.patch.set_alpha(0.0)
-        ax.patch.set_alpha(0.5)
+        # fig.patch.set_alpha(0.0)
+        # ax.patch.set_alpha(0.5)
 
         subset = data[column].dropna()
         embeddings = self.embeddings_method(column, subset.values)
@@ -142,7 +142,7 @@ class ProteinEmbeddingPlotter(BasicEmbeddingPlotter):
             # print("PROTEIN EMBEDDING PLOTTER is_applicable - super")
             return False
         column = columns[0]
-        values_list = data[column].dropna().unique()
+        values_list = np.unique(data[column].dropna())
         protein_like = np.all([
             self.PROT_REGEX.match(x) is not None 
             for x in values_list
@@ -168,7 +168,7 @@ class DNAEmbeddingPlotter(BasicEmbeddingPlotter):
         if not super().is_applicable(data, columns):
             return False
         column = columns[0]
-        values_list = data[column].dropna().unique()
+        values_list = np.unique(data[column].dropna())
         values_list
         protein_like = np.all([
             self.DNA_REGEX.match(x) is not None 
@@ -191,7 +191,7 @@ class ChemEmbeddingPlotter(BasicEmbeddingPlotter):
             return False
         
         column = columns[0]
-        values_list = data[column].dropna().unique()
+        values_list = np.unique(data[column].dropna())
         values_list = [x.strip() for x in values_list]
         values_list = [x for x in values_list if len(x) > 5]
         if len(values_list) < 5:
@@ -243,13 +243,13 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         # print("plot called", columns)
         x_column, y_column = columns
         fig, ax = plt.subplots()
-        fig.patch.set_alpha(0.0)
-        ax.patch.set_alpha(0.5)
+        # fig.patch.set_alpha(0.0)
+        # ax.patch.set_alpha(0.5)
         subset = data[[x_column, y_column]].dropna()
         text_values = subset.values[:, 0]
         hue_values = subset.values[:, 1]
 
-        seq_list = data[x_column].dropna().values.flatten()
+        seq_list = list(data[x_column].dropna())
 
         # print("plot", len(seq_list), len(text_values))
         embeddings = self.embeddings_method(x_column, seq_list)
@@ -304,7 +304,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         if len(subset) < 10:
             # print("BASIC EMBEDDING PLOTTER is_applicable subset length", subset[:3])
             return False
-        text_values = subset.values[:, 0]
+        text_values = list(subset.values[:, 0])
         unique_seq = np.unique(text_values)
         if len(unique_seq) < max(10, 0.3*len(subset)):
             # print("BASIC EMBEDDING PLOTTER is_applicable subset length", unique_seq[:10])

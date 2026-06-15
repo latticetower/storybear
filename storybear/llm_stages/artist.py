@@ -10,7 +10,7 @@ from storybear.data_structures import (
 )
 # TODO: add change of the image path
 logger = logging.getLogger(__name__)
-
+from storybear.utils import overlay_images
 # ---------------------------------------------------------------------------
 # 8. Artist
 # ---------------------------------------------------------------------------
@@ -40,18 +40,19 @@ class Artist(_LLMMixin):
     #     "Given a chart image, describe specific matplotlib changes to improve it. "
     #     "Return ONLY valid JSON."
     # )
-    SYSTEM_PROMPT = (
-        "Turn this photo into a funny ugly doodle drawing. Make it look like: a quick sketch using a cheap marker or crayon messy,"
-        "rough, childlike style bad perspective and awkward proportions slightly exaggerated facial features.\n"
-        "Add: simple cartoon background (like elven village, trees, squirrel delivery) random sketchy lines and "
-        "details uneven coloring and visible strokes.\n"
-        "Style: looks like a lazy drawing, not polished humorous and a bit stupid-looking meme-like, whimsical, internet style.\n"
-        "Do NOT: make it realistic")
+    SYSTEM_PROMPT = "Turn this photo into a funny ugly doodle drawing. " \
+    "Make it look like: a quick sketch using a cheap marker or crayon messy, " \
+    "rough, childlike style, bad perspective and awkward proportions, slightly " \
+    "exaggerated facial features. Add: simple cartoon background (like elven village, " \
+    "trees, squirrel delivery) random sketchy lines and details, uneven coloring and " \
+    "visible strokes. Style: looks like a lazy drawing, not polished humorous and a bit " \
+    "stupid-looking meme-like, casual, internet style, with a bit of magic. Keep the " \
+    "original pattern visible. Do NOT: make it realistic"
 
     DEFAULT_STYLE_BRIEF = "clean, modern, publication-ready, consistent colour palette"
 
     def __init__(self, style_brief: str | None = None) -> None:
-        self.style_brief = style_brief or self.SYSTEM_PROMPT
+        self.style_brief =  self.SYSTEM_PROMPT
         self._llm_image2image_func = None
 
     def __call__(self, report: ReportRecord) -> ReportRecord:
@@ -112,8 +113,10 @@ class Artist(_LLMMixin):
     def _call_llm_image2image(self, prompt: str, image_path: Path) -> Path:
         if self._llm_image2image_func is None:
             return image_path
-        save_image_path = self._llm_image2image_func(prompt, image_path)
+        mod_image_path = self._llm_image2image_func(prompt, image_path)
+        save_path = image_path.parent / (image_path.stem + ".png")
+        overlay_images(image_path, mod_image_path, mod_image_path)
         # print(img)
-        return save_image_path
+        return save_path
 
 

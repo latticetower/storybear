@@ -45,7 +45,7 @@ from pathlib import Path
 from typing import List, Union
 
 from storybear.data_structures import PlotRecord
-
+from storybear.utils import klein_size
 logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "minicpm-v"
@@ -312,16 +312,30 @@ def flux_i2i_func(prompt: str, file_path: Union[str, Path]) -> Path:
     import requests
 
     file_path = Path(file_path)
+    save_file_path = file_path.parent / (file_path.stem + "_mod.png")
+    from PIL import Image
+    img = Image.open(file_path).convert("RGBA")
+    w, h = klein_size(img.size)
+    if img.size != (w, h):
+        img = img.resize((w, h), Image.LANCZOS)
+    # img.thumbnail((512, 512))
+    # img.save(file_path)
+
+    img.save(save_file_path)
+    # background = Image.new('RGBA', img.size, (255,255,255))
+    # alpha_composite = Image.alpha_composite(background, img)
+    # alpha_composite.save(save_file_path)
+    # img.save(save_file_path)
+
     with open(file_path, "rb") as f:
         response = requests.post(
             _flux_url(),
             data={"prompt": prompt},
-            files={"image": (file_path.name, f, "image/png")},
+            files={"image": (save_file_path.name, f, "image/png")},
             headers=_proxy_auth_headers(),
             timeout=_timeout(),
         )
     response.raise_for_status()
-    save_file_path = file_path.parent / (file_path.stem + "_mod.png")
 
     with open(save_file_path, "wb") as f:
         f.write(response.content)
