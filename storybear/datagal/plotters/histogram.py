@@ -22,6 +22,8 @@ class HistogramPlotter(BasePlotter):
         if cmap is not None:
             palette = sns.color_palette(cmap.colors)
         fig, ax = plt.subplots()
+        fig.patch.set_alpha(0.0)
+        ax.patch.set_alpha(0.5)
         try:
             values = data[col].dropna().values
             sns.histplot(values, ax=ax)  #  , palette=palette)
@@ -72,6 +74,8 @@ class LengthHistogramPlotter(BasePlotter):
         if cmap is not None:
             palette = sns.color_palette(cmap.colors)
         fig, ax = plt.subplots()
+        fig.patch.set_alpha(0.0)
+        ax.patch.set_alpha(0.5)
         try:
             values = data[col].dropna().apply(len).values
             sns.histplot(values, ax=ax)  # , palette=palette)

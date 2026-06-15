@@ -53,6 +53,9 @@ class BasicEmbeddingPlotter(BasePlotter):
         # print("plot called", columns)
         column = columns[0]
         fig, ax = plt.subplots()
+        fig.patch.set_alpha(0.0)
+        ax.patch.set_alpha(0.5)
+
         subset = data[column].dropna()
         embeddings = self.embeddings_method(column, subset.values)
         #print(embeddings.shape)
@@ -240,6 +243,8 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         # print("plot called", columns)
         x_column, y_column = columns
         fig, ax = plt.subplots()
+        fig.patch.set_alpha(0.0)
+        ax.patch.set_alpha(0.5)
         subset = data[[x_column, y_column]].dropna()
         text_values = subset.values[:, 0]
         hue_values = subset.values[:, 1]
