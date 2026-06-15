@@ -10,8 +10,8 @@ from storybear.pipeline import StorybearPipeline
 
 
 DATA_EXAMPLES = [
-    ["hf://datasets/phihung/titanic/train.csv"],
-    ["hf://datasets/latticetower/nrps_modules_asdb4.0/nrps_modules_info_cleaned.csv"]
+    "hf://datasets/phihung/titanic/train.csv",
+    "hf://datasets/latticetower/nrps_modules_asdb4.0/nrps_modules_info_cleaned.csv"
 ]
 
 
@@ -29,6 +29,18 @@ def initialize_instance(request: gr.Request):
 
 
 def update_dataframe(file, request: gr.Request):
+    print('update dataframe', file)
+    if file is not None:
+        # print(file)
+        try:
+            df = pd.read_csv(file)
+        except:
+            # print("Couldn't read the file")
+            return
+        instances[request.session_hash] = {'data_frame': df, 'report': None}
+
+def update_from_examples(file: str, request: gr.Request):
+    # print('update dataframe', file)
     if file is not None:
         # print(file)
         try:
@@ -136,9 +148,10 @@ def build_ui(named_stages_list):
                 # example_text=gr.Label("text")
                 # f_comp.upload(greet, [f_comp], outputs=[example_text])
 
-                df_hf_path = gr.Textbox(label="Select data table", lines=3, value=DATA_EXAMPLES[0])
                 demo_button = gr.Button("Click the button to launch on demo dataset")
-                gr.Examples(DATA_EXAMPLES, df_hf_path, label="Select dataset")
+                df_hf_path = gr.Textbox(label="Select data table", lines=1, value=DATA_EXAMPLES[0])
+                df_hf_path.change(update_from_examples, [df_hf_path], [])
+                gr.Examples(DATA_EXAMPLES, [df_hf_path], [], label="Select dataset")
                 
             with gr.Column():
                 with gr.Accordion("Pipeline status dashboard"):
