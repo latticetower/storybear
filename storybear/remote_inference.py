@@ -240,7 +240,7 @@ def _chat(
     *,
     max_tokens: int | None = None,
     choices: List[str] | None = None,
-    image_max_px: int | None = None,
+    image_max_px: int | None = None
 ) -> str:
     """
     Core chat-completions call shared by the VLM helpers.
@@ -264,12 +264,17 @@ def _chat(
         kwargs["extra_body"] = {"guided_choice": list(choices)}
 
     response = _create_with_retry(**kwargs)
-    return (response.choices[0].message.content or "").strip()
+    response_text = (response.choices[0].message.content or "").strip()
+    if response_text == "":
+        print("**RESPONSE")
+        print(response)
+        print("*******")
+    return response_text
 
 
 def it2t_summary_func(
     system_prompt: str,
-    record_list: List[Union[PlotRecord, str]],
+    record_list: List[Union[PlotRecord, str]]
 ) -> str:
     """
     Send a system prompt plus a list of records to the remote VLM and return the
@@ -280,7 +285,7 @@ def it2t_summary_func(
 
 def it2t_compare_func(
     system_prompt: str,
-    record_list: List[Union[PlotRecord, str]],
+    record_list: List[Union[PlotRecord, str]]
 ) -> str:
     """
     Foodie's pairwise comparison call: constrain the answer to FIRST/SECOND via
@@ -295,7 +300,7 @@ def it2t_compare_func(
         record_list,
         max_tokens=8,
         choices=["FIRST", "SECOND"],
-        image_max_px=compare_px,
+        image_max_px=compare_px
     )
 
 

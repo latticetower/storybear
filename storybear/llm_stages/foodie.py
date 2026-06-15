@@ -43,12 +43,13 @@ class Foodie(_LLMMixin):
         "and potential reader interest"
     )
 
-    def __init__(self, criteria: str | None = None, max_workers: int = 1) -> None:
+    def __init__(self, criteria: str | None = None, max_workers: int = 1, debug :bool=True) -> None:
         self.criteria = criteria or self.DEFAULT_CRITERIA
         self._llm_image2text_func = None
         # Pairwise comparisons are independent and I/O-bound against the remote
         # VLM, so we fan them out across threads (the server batches them).
         self.max_workers = max_workers
+        self.debug = debug
 
     def __call__(self, report: ReportRecord) -> ReportRecord:
         return self.process_all(report)
@@ -133,5 +134,9 @@ class Foodie(_LLMMixin):
         if self._llm_image2text_func is None:
             return "default caption" # todo: fix, replace dummy call with actual call
         res = self._llm_image2text_func(prompt, records_list)
+        if self.debug:
+            print("-"*5)
+            print(prompt, records_list)
+            print(res)
         return res
 
