@@ -62,19 +62,16 @@ The names of the classes representing each particular part of the pipeline are s
 - [x] Remove columns with "_id", "Id" and "identifier" from the consideration
 - [ ] add default text gen (both with and without LLMs, no data)
 - [x] remove very similar plots based on their descriptions
-- [ ] don't save plots which were filtered by description
-- [ ] don't build plots for the highly correlated columns
+- [x] don't save plots which were filtered by description
+- [x] don't build plots for the highly correlated columns
 - [x] For string columns: draw length distributions
 - [x] Proteins: compute embeddings with esm2 8m + draw scatterplots
 - [x] Proteins: add color
 - [x] SMILES: chemberta
-- [ ] SMILES: mol descriptors
 - [ ] add some sort of log to be able to understand why some of the columns were not processed
 - [ ] add example with smiles and/or RNA/DNA
-- [x] use pypalettes for consistent coloring
 - [x] add new types of columns
-- [ ] add Modal code to main repo
-- [ ] make everything work with ZeroGPU
+- [x] add Modal code to main repo
 - [ ] Add custom flowerplot, heatmap, and something fun.
 
 
@@ -84,7 +81,7 @@ The names of the classes representing each particular part of the pipeline are s
 3. https://arxiv.org/abs/2508.16757 paper on reranking strategies. I use basic and slow approach at the moment - pair reranking of plot descriptions, scoring based on this reranking, selection of top N plots (N=5).
 
 ## Pretrained Models in use
-1. https://huggingface.co/black-forest-labs/FLUX.2-klein-base-4B in local inference, for image styling
+1. https://huggingface.co/black-forest-labs/FLUX.2-klein-4B in local inference, for image styling
 2. https://huggingface.co/openbmb/MiniCPM-V-4.6 in main pipeline, for caption, header, lead generation
 3. https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2 source of text embeddings for plots filtering and creation
 4. https://huggingface.co/facebook/esm2_t6_8M_UR50D source of protein embeddings for corresponding columns (if any). My favourite model!
