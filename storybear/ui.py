@@ -146,11 +146,17 @@ def build_ui(named_stages_list, printer):
     pipeline_blocks = []
     
     with gr.Blocks(title="storybear") as demo:
-        gr.Markdown("## STORYBEAR: from science to fairytale via agent-assisted storytelling")
-        status_output = gr.Textbox(label="Status")
+        gr.Markdown((
+            "## STORYBEAR: from science to fairytale via agent-assisted storytelling\n"
+            "![project logo](https://github.com/latticetower/storybear/blob/dev/assets/storybear-logo.png)"
+        ))
+        with gr.Row("Parent container1"):
+            gr.Image("https://github.com/latticetower/storybear/blob/dev/assets/storybear-logo.png")
+            status_output = gr.Label(label="Status")
+
         
         # demo_button.click(click_demo, [], pipeline_blocks[0])
-        with gr.Row("Parent container"):
+        with gr.Row("Parent container1"):
             with gr.Column():
                 f_comp = gr.File(show_label=True, file_types=[".csv"])
                 f_comp.upload(update_dataframe, [f_comp], [])
@@ -178,7 +184,7 @@ def build_ui(named_stages_list, printer):
                     clear_checkboxes_button = gr.ClearButton()
                     file_printer = gr.File()
 
-        with gr.Column("Parent container") as container:
+        with gr.Column("Parent container2") as container2:
             @gr.render(inputs=[pipeline_blocks[-1]])
             def show_demo_view(count, request: gr.Request):
                 # print(count)
@@ -188,12 +194,12 @@ def build_ui(named_stages_list, printer):
                         blocks = [
                             gr.Markdown((
                                 f"# {report.header}\n"
-                                f"## {report.lead}"
+                                f"{report.lead}"
                             )),
                             
                         ]
                     for i, record in enumerate(report.plot_record_list):
-                        text = gr.Label(record.caption)
+                        text = gr.Markdown(record.caption)
                         plot_path = record.plot_path if record.mod_path is None else record.mod_path
                         im = gr.Image(plot_path)
                         blocks.append(gr.Row(f"Row_{i}", [text, im]))

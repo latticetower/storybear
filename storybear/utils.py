@@ -34,7 +34,7 @@ def overlay_images(orig_path, mod_path, save_path):
     im = Image.alpha_composite(orig, img)
     im.save(save_path)
 
-def klein_size(w: int, h: int, target_area: int = 1024 * 1024, divisor: int = 16) -> tuple[int, int]:
+def klein_size(w: int, h: int, target_area: int = 512 * 512, divisor: int = 16) -> tuple[int, int]:
     """Snap (w, h) to multiples of 16, preserving aspect, keeping the patch
     count under Klein's 4096-token ceiling. Rounding DOWN guarantees we never
     exceed it for any aspect ratio."""
