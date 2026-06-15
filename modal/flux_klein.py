@@ -33,7 +33,7 @@ Call it (multipart form: `image` file + `prompt` field):
 
 import modal
 
-MODEL_NAME = "black-forest-labs/FLUX.2-klein-base-4B"
+MODEL_NAME = "black-forest-labs/FLUX.2-klein-4B"
 
 # FLUX.2-klein is a 4B model; a single A100 handles it with CPU offload enabled.
 GPU_TYPE = "A100"
@@ -121,11 +121,15 @@ class FluxKlein:
         from PIL import Image
 
         reference = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        w, h = reference.size
+        # generator=torch.Generator(device=device).manual_seed(int(seed)),
         result = self.pipe(
             prompt=prompt,
             image=reference,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
+            width=w,
+            height=h,
         ).images[0]
 
         buffer = io.BytesIO()
