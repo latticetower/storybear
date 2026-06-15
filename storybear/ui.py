@@ -193,7 +193,8 @@ def build_ui(named_stages_list, printer):
                         ]
                     for i, record in enumerate(report.plot_record_list):
                         text = gr.Label(record.caption)
-                        im = gr.Image(record.plot_path)
+                        plot_path = record.plot_path if record.mod_path is None else record.mod_path
+                        im = gr.Image(plot_path)
                         blocks.append(gr.Row(f"Row_{i}", [text, im]))
 
                     if len(report.discussion) > 0:
