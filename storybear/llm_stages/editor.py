@@ -152,7 +152,6 @@ class Editor(_LLMMixin):
             "1. One sentence desribing the main problem (which is highlighted in the header).\n"
             "2. For each of data findings: 1-2 short sentences describing how this problem is related to it.\n"
             "3. One sentence: what is the problem that we face and what the squirrel society should do to fix this problem?\n"
-            "4. Will it help if we will throw nuts in it or cast specially crafted magic spells?\n"
             #'Return ONLY text.'
         )  #f"{summaries}\n\n"
         return header_prompt, lead_prompt, discussion_prompt
