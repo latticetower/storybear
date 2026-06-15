@@ -21,7 +21,7 @@ project/
 """
  
 from __future__ import annotations
- 
+from typing import Tuple
 #import importlib.util
 import inspect
 # import itertools
@@ -132,7 +132,7 @@ class BasePlotter(ABC):
     # ------------------------------------------------------------------
  
     @abstractmethod
-    def plot(self, data: pd.DataFrame, columns: list[str],  save_path: Path, cmap = None) -> Path:
+    def plot(self, data: pd.DataFrame, columns: list[str],  save_path: Path, cmap = None) -> Tuple[Path, str]:
         """
         Produce and return a matplotlib Figure for *columns* in *data*.
  

@@ -4,7 +4,7 @@ Example plotter: Scatter plot for two numeric columns.
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 import seaborn as sns
 import numpy as np
 from pathlib import Path
@@ -16,7 +16,7 @@ class ScatterPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("numeric",), ("numeric",))
 
-    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Tuple[Path, str]:
         x_col, y_col = columns
         fig, ax = plt.subplots()
         fig.patch.set_alpha(0.0)
@@ -38,12 +38,13 @@ class ScatterPlotter(BasePlotter):
         )
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
-        ax.set_title(f"{x_col} vs {y_col}")
+        plot_name = f"{x_col} vs {y_col}"
+        ax.set_title(plot_name)
 
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)
 
-        return save_path
+        return save_path, plot_name
     
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 2:
@@ -81,7 +82,7 @@ class BoxPlotter(BasePlotter):
     arity = 2
     accepted_kinds = (("categorical",), ("numeric",))
 
-    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Tuple[Path, str]:
         cat_col, num_col = columns
         subset = data[[cat_col, num_col]].dropna()
         fig, ax = plt.subplots()
@@ -96,15 +97,16 @@ class BoxPlotter(BasePlotter):
             ax.boxplot(groups, labels=labels)
             ax.set_xlabel(cat_col)
             ax.set_ylabel(num_col)
-            ax.set_title(f"{num_col} by {cat_col}")
+            plot_name = f"{num_col} by {cat_col}"
+            ax.set_title(plot_name)
         except Exception as e:
             print(f"BoxPlot ({columns}):", e)
             plt.close(fig)
-            return None
+            return None, ""
 
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)
-        return save_path
+        return save_path, plot_name
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 2:

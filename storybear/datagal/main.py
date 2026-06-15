@@ -79,7 +79,12 @@ class DataGal:
         self._cmap = mpl.colormaps['tab20']
         palette = sns.color_palette(self._cmap.colors)
         sns.set_palette(palette)
- 
+        self.plot_collection = dict()
+        # self.init_plots()
+
+    # def init_plots(self):
+    #     PLOTTER_CLASSES
+    #     pass
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -92,8 +97,8 @@ class DataGal:
         # self._load_plotters()
         plot_info = self._generate_plots()
         all_records = []
-        for plotter_class_name, plot_path, kinds, columns, stats in plot_info:
-            record = PlotRecord(plot_path, columns, plotter_class_name, stats)
+        for plotter_class_name, plot_path, plot_name, kinds, columns, stats in plot_info:
+            record = PlotRecord(plot_path, plot_name, columns, plotter_class_name, stats)
             all_records.append(record)
         report = ReportRecord("", "", all_records)
         return report
@@ -115,8 +120,8 @@ class DataGal:
         # self._load_plotters()
         plot_info = self._generate_plots()
         all_records = []
-        for plotter_class_name, plot_path, kinds, columns, stats in plot_info:
-            record = PlotRecord(plot_path, columns, plotter_class_name, stats)
+        for plotter_class_name, plot_path, plot_name, kinds, columns, stats in plot_info:
+            record = PlotRecord(plot_path, plot_name, columns, plotter_class_name, stats)
             all_records.append(record)
         return all_records
     # ------------------------------------------------------------------
@@ -205,9 +210,9 @@ class DataGal:
         
         saved_results = []
         for plotter_cls, kinds, plot_columns, stats in results:
-            save_path = self._run_plotter(plotter_cls, plot_columns)
+            save_path, plot_name = self._run_plotter(plotter_cls, plot_columns)
             if save_path is not None:
-                saved_results.append((plotter_cls.__name__, save_path, kinds, plot_columns, stats))
+                saved_results.append((plotter_cls.__name__, save_path, plot_name, kinds, plot_columns, stats))
         tbar.update(50)
         tbar.close()
 
@@ -225,7 +230,7 @@ class DataGal:
         filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
         save_path = self.output_dir / filename
         try:
-            save_path = plotter.plot(self._data, columns, save_path, cmap=self._cmap)
+            save_path, plot_name = plotter.plot(self._data, columns, save_path, cmap=self._cmap)
             if save_path is None:
                 logger.warning(
                     "%s.plot() returned None for columns %s — skipping.",
@@ -236,12 +241,12 @@ class DataGal:
             #fig.savefig(save_path, bbox_inches="tight")
             # _close_figure(fig)
             logger.debug("Saved: %s", save_path)
-            return save_path
+            return save_path, plot_name
         except Exception as exc:
             logger.error(
                 "%s failed on columns %s: %s", plotter_cls.__name__, columns, exc
             )
-            return None
+            return None, "no name"
 
     def _get_plot_info(self, plotter_cls, columns: list[str]) -> OrderedDict | None:
         """Instantiate the plotter, call plot(), and save the figure."""

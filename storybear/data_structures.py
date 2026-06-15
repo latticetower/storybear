@@ -40,6 +40,7 @@ class PlotRecord:
     """
 
     plot_path: Path
+    plot_name: str
     columns: list[str]
     plotter_class: str
     stats: OrderedDict
@@ -63,6 +64,7 @@ class PlotRecord:
     @staticmethod
     def from_record(record, caption=None, ranking=-1., position=-1, mod_path=None):
         plot_path = record.plot_path
+        plot_name = record.plot_name
         columns = record.columns
         plotter_class = record.plotter_class
         stats = record.stats
@@ -74,11 +76,11 @@ class PlotRecord:
             position = record.position
         if mod_path is None:
             mod_path = record.mod_path
-        return PlotRecord(plot_path, columns, plotter_class, stats, caption, ranking, position, mod_path)
+        return PlotRecord(plot_path, plot_name, columns, plotter_class, stats, caption, ranking, position, mod_path)
 
     def __str__(self):
         return (
-            f"Record {self.plotter_class} at {self.plot_path}\n"
+            f"Record {self.plotter_class} at {self.plot_path}\n{self.plot_name}\n"
             f"{self.columns}, {self.stats}\n"
             f"Caption: {self.caption}\n"
             f"Ranking: {self.ranking}\n"
@@ -96,3 +98,4 @@ class ReportRecord:
     header: str   # H — catchy, possibly exaggerated title
     lead: str     # L — opening paragraph summarising the key finding
     plot_record_list: List[PlotRecord]
+    discussion: str = ""

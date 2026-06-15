@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 from pathlib import Path
 from collections import OrderedDict
 from storybear.datagal.plotters.base import BasePlotter
@@ -17,7 +17,7 @@ class HistogramPlotter(BasePlotter):
     arity = 1
     accepted_kinds = (("numeric",),)
  
-    def plot(self, data: pd.DataFrame, columns: List[str], save_path: Path, cmap=None) -> Path:
+    def plot(self, data: pd.DataFrame, columns: List[str], save_path: Path, cmap=None) -> Tuple[Path, str]:
         col = columns[0]
         if cmap is not None:
             palette = sns.color_palette(cmap.colors)
@@ -28,15 +28,16 @@ class HistogramPlotter(BasePlotter):
             values = data[col].dropna().values
             sns.histplot(values, ax=ax)  #  , palette=palette)
             # data[col].dropna().plot.hist(ax=ax, bins=30, edgecolor="white")
-            ax.set_title(f"Distribution of {col}")
+            plot_name = f"Distribution of {col}"
+            ax.set_title(plot_name)
             ax.set_xlabel(col)
         except Exception as e:
             plt.close(fig)
-            return None
+            return None, ""
 
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)
-        return save_path
+        return save_path, plot_name
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 1:
@@ -80,7 +81,8 @@ class LengthHistogramPlotter(BasePlotter):
             values = data[col].dropna().apply(len).values
             sns.histplot(values, ax=ax)  # , palette=palette)
             # .plot.hist(ax=ax, bins=30, edgecolor="white", c=[cmap(0)])
-            ax.set_title(f"Length distribution of {col}")
+            plot_name = f"Length distribution of {col}"
+            ax.set_title(plot_name)
             ax.set_xlabel(col)
             
         except Exception as e:
@@ -88,7 +90,7 @@ class LengthHistogramPlotter(BasePlotter):
             return None
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)
-        return save_path
+        return save_path, plot_name
 
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         if len(columns) != 1:

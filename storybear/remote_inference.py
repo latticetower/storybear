@@ -314,7 +314,7 @@ def flux_i2i_func(prompt: str, file_path: Union[str, Path]) -> Path:
     file_path = Path(file_path)
     save_file_path = file_path.parent / (file_path.stem + "_mod.png")
     from PIL import Image
-    img = Image.open(file_path).convert("RGBA")
+    img = Image.open(file_path).convert("RGB")
     w, h = klein_size(*img.size)
     if img.size != (w, h):
         img = img.resize((w, h), Image.LANCZOS)

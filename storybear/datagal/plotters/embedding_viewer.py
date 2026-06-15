@@ -7,7 +7,7 @@ import numpy as np
 import seaborn as sns
 import re
 import pandas as pd
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 from pathlib import Path
 from collections import OrderedDict
 from storybear.datagal.plotters.base import BasePlotter
@@ -49,7 +49,7 @@ class BasicEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Tuple[Path, str]:
         # print("plot called", columns)
         column = columns[0]
         fig, ax = plt.subplots()
@@ -79,11 +79,12 @@ class BasicEmbeddingPlotter(BasePlotter):
         )
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
-        ax.set_title(f"{self.accepted_kinds[0].capitalize()} embedding space of {column}")
+        plot_name = f"{self.accepted_kinds[0].capitalize()} embedding space of {column}"
+        ax.set_title(plot_name)
 
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)
-        return save_path
+        return save_path, plot_name
     
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         # print("BASIC EMBEDDING PLOTTER is_applicable", columns)
@@ -239,7 +240,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
 
         return embeddings
 
-    def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
+    def plot(self, data, columns, save_path: Path, cmap=None) -> Tuple[Path, str]:
         # print("plot called", columns)
         x_column, y_column = columns
         fig, ax = plt.subplots()
@@ -282,11 +283,12 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         # ax.scatter(x_values, y_values, c=hue_values, alpha=0.5, s=20)
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
-        ax.set_title(f"{self.accepted_kinds[0].capitalize()} embedding space of {x_column}, colored by {y_column}")
+        plot_name = f"{self.accepted_kinds[0].capitalize()} embedding space of {x_column}, colored by {y_column}"
+        ax.set_title(plot_name)
 
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)
-        return save_path
+        return save_path, plot_name
     
     def is_applicable(self, data: pd.DataFrame, columns: List[str]) -> bool:
         # print("BASIC EMBEDDING PLOTTER is_applicable", columns)
