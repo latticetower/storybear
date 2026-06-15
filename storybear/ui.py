@@ -68,8 +68,9 @@ def call_clear_checkboxes(*input):
 
 
 class StageProcessor:
-    def __init__(self, named_stages_list):
+    def __init__(self, named_stages_list, printer):
         self.named_stages_list = named_stages_list
+        self.printer = printer
         #self.stage_name = stage_name
         #self.stage_func = stage_func
     def __len__(self):
@@ -98,14 +99,14 @@ class StageProcessor:
                 else:
                     new_report = stage_func(report)
                 instances[request.session_hash]['report'] = new_report
-            # print("after:", self.stage_name, self.current_value)
-            print(input_block)
-            for record in new_report.plot_record_list:
-                print(str(record))
-            text = ""
-            for i in progress.tqdm(np.arange(5)):
-                text += f"{i}"
-                sleep(0.01)
+                # print("after:", self.stage_name, self.current_value)
+                print(input_block)
+                for record in new_report.plot_record_list:
+                    print(str(record))
+            # text = ""
+            # for i in progress.tqdm(np.arange(5)):
+            #     text += f"{i}"
+            #     sleep(0.01)
             return True
     
         def restart_pipeline(request: gr.Request, progress=gr.Progress()):
@@ -116,6 +117,13 @@ class StageProcessor:
         if i == 0:
             return restart_pipeline
         return process_step
+    
+    def save_to_pdf(self, request: gr.Request):
+        if request.session_hash in instances:
+            report = instances[request.session_hash]['report']
+            pdf_file = self.printer(report)
+        return "File saved to pdf", pdf_file.as_posix()
+
 
     def finish_job(self, input_block, request: gr.Request):
         # update state of associated components based on session
@@ -132,7 +140,7 @@ class StageProcessor:
         return f"Finished! Session hash is not available, no data"
 
 
-def build_ui(named_stages_list):
+def build_ui(named_stages_list, printer):
     num_stages = len(named_stages_list)
     pipeline_blocks = []
     
@@ -149,7 +157,7 @@ def build_ui(named_stages_list):
                 # f_comp.upload(greet, [f_comp], outputs=[example_text])
 
                 demo_button = gr.Button("Click the button to launch on demo dataset")
-                df_hf_path = gr.Textbox(label="Select data table", lines=1, value=DATA_EXAMPLES[0])
+                df_hf_path = gr.Textbox(label="Select data table", lines=1, value=DATA_EXAMPLES[0], interactive=False)
                 df_hf_path.change(update_from_examples, [df_hf_path], [])
                 gr.Examples(DATA_EXAMPLES, [df_hf_path], [], label="Select dataset")
                 
@@ -167,11 +175,12 @@ def build_ui(named_stages_list):
                             gr.Checkbox(value=False, label=f"Stage {i}: {stage_name} - {stage_description}", interactive=False)
                         )
                     clear_checkboxes_button = gr.ClearButton()
+                    file_printer = gr.File()
 
         with gr.Column("Parent container") as container:
             @gr.render(inputs=[pipeline_blocks[-1]])
             def show_demo_view(count, request: gr.Request):
-                print(count)
+                # print(count)
                 if request.session_hash in instances:
                     report = instances[request.session_hash]['report']
                     with gr.Row("Header line"):
@@ -186,7 +195,7 @@ def build_ui(named_stages_list):
             
 
         clear_checkboxes_button.click(call_clear_checkboxes, pipeline_blocks, pipeline_blocks)
-        stage_processor = StageProcessor(named_stages_list)
+        stage_processor = StageProcessor(named_stages_list, printer)
 
         for i in range(num_stages - 1):
             input_block = pipeline_blocks[i]
@@ -196,12 +205,16 @@ def build_ui(named_stages_list):
             input_block.change(process_step, [input_block], [output_block])
 
         output_block.change(stage_processor.finish_job, [output_block], [status_output])
-        output_block.change(show_demo_view, [output_block], [])
+        output_block.change(
+            show_demo_view, [output_block], []
+        ).then(stage_processor.save_to_pdf, [], [status_output, file_printer])
 
         #stage_name, stage_func = named_step_list[0]
         restart_pipeline = stage_processor[0]
         #restart_pipeline = StageProcessor(stage_name, stage_func).restart_pipeline
-        demo_button.click(restart_pipeline, [], [pipeline_blocks[0]])
+        demo_button.click(
+            call_clear_checkboxes, pipeline_blocks, pipeline_blocks
+        ).then(restart_pipeline, [], [pipeline_blocks[0]])
 
         demo.load(initialize_instance, inputs=None, outputs=status_output)    
         # Clean up instance when page is closed/refreshed
@@ -244,6 +257,6 @@ def create_app(use_llm=True, use_vlm=False, remote=True):
     named_stages_list = pipeline.get_stages()
 
     # current_value = gr.State([0])
-    demo = build_ui(named_stages_list)
+    demo = build_ui(named_stages_list, printer=pipeline._typography)
 
     return demo
