@@ -1,7 +1,7 @@
 import storybear
 
 demo = storybear.create_app()
-demo.launch()
+demo.launch(max_file_size="15MB")
 
 # import gradio as gr
 # from pathlib import Path

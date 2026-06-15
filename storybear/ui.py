@@ -17,6 +17,7 @@ DATA_EXAMPLES = [
 
 instances = {}
 
+
 def initialize_instance(request: gr.Request):
     tempdir = Path("temp")
     tempdir.mkdir(exist_ok=True)
@@ -25,6 +26,17 @@ def initialize_instance(request: gr.Request):
     df = pd.read_csv(csv)
     instances[request.session_hash] = {'data_frame': df, 'report': None}
     return "Session initialized!"
+
+
+def update_dataframe(file, request: gr.Request):
+    if file is not None:
+        # print(file)
+        try:
+            df = pd.read_csv(file)
+        except:
+            # print("Couldn't read the file")
+            return
+        instances[request.session_hash] = {'data_frame': df, 'report': None}
 
 
 def cleanup_instance(request: gr.Request):
@@ -119,6 +131,11 @@ def build_ui(named_stages_list):
         # demo_button.click(click_demo, [], pipeline_blocks[0])
         with gr.Row("Parent container"):
             with gr.Column():
+                f_comp = gr.File(show_label=True, file_types=[".csv"])
+                f_comp.upload(update_dataframe, [f_comp], [])
+                # example_text=gr.Label("text")
+                # f_comp.upload(greet, [f_comp], outputs=[example_text])
+
                 df_hf_path = gr.Textbox(label="Select data table", lines=3, value=DATA_EXAMPLES[0])
                 demo_button = gr.Button("Click the button to launch on demo dataset")
                 gr.Examples(DATA_EXAMPLES, df_hf_path, label="Select dataset")
