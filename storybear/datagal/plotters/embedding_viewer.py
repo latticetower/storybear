@@ -79,7 +79,7 @@ class BasicEmbeddingPlotter(BasePlotter):
         )
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
-        ax.set_title(f"Embedding space of {column}, built with {self.model_name}")
+        ax.set_title(f"{self.accepted_kinds[0].capitalize()} embedding space of {column}")
 
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)
@@ -282,7 +282,7 @@ class BasicColoredEmbeddingPlotter(BasePlotter):
         # ax.scatter(x_values, y_values, c=hue_values, alpha=0.5, s=20)
         ax.set_xlabel("PCA 1")
         ax.set_ylabel("PCA 2")
-        ax.set_title(f"Embedding space of {x_column}, colored by {y_column}, \nbuilt with {self.model_name}")
+        ax.set_title(f"{self.accepted_kinds[0].capitalize()} embedding space of {x_column}, colored by {y_column}")
 
         fig.savefig(save_path, bbox_inches="tight")
         plt.close(fig)

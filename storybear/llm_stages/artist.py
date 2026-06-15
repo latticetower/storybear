@@ -40,12 +40,13 @@ class Artist(_LLMMixin):
     #     "Given a chart image, describe specific matplotlib changes to improve it. "
     #     "Return ONLY valid JSON."
     # )
-    SYSTEM_PROMPT = """
-    Turn this photo to an image by adding black contours to colored areas.
-
-    Style: looks like a lazy drawing, not polished humorous and a bit stupid-looking meme-like, casual, internet style
-    Do NOT: make it realistic
-    """
+    SYSTEM_PROMPT = (
+        "Turn this photo into a funny ugly doodle drawing. Make it look like: a quick sketch using a cheap marker or crayon messy,"
+        "rough, childlike style bad perspective and awkward proportions slightly exaggerated facial features.\n"
+        "Add: simple cartoon background (like elven village, trees, squirrel delivery) random sketchy lines and "
+        "details uneven coloring and visible strokes.\n"
+        "Style: looks like a lazy drawing, not polished humorous and a bit stupid-looking meme-like, whimsical, internet style.\n"
+        "Do NOT: make it realistic")
 
     DEFAULT_STYLE_BRIEF = "clean, modern, publication-ready, consistent colour palette"
 

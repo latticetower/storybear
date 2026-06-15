@@ -11,7 +11,7 @@ from collections import defaultdict, OrderedDict
 from tqdm.auto import tqdm
 # 
 import seaborn as sns
-
+import matplotlib as mpl
 # from pypalettes import load_cmap
 
 from ..data_structures import PlotRecord, ReportRecord
@@ -75,6 +75,10 @@ class DataGal:
         self._cmap = None
         self._filtered_columns = []
         self._plot_filter = TextFilter(10)
+
+        self._cmap = mpl.colormaps['tab20']
+        palette = sns.color_palette(self._cmap.colors)
+        sns.set_palette(palette)
  
     # ------------------------------------------------------------------
     # Public API
@@ -82,6 +86,7 @@ class DataGal:
     def __call__(self, df: pd.DataFrame) -> ReportRecord:
         if not isinstance(df, pd.DataFrame):
             raise TypeError(f"DataGal: accepts dataframe in __call__, got {type(df)}")
+
         self._data = df
         self._filtered_columns = self._apply_columns_filters(self._data)
         # self._load_plotters()
@@ -101,7 +106,8 @@ class DataGal:
         -------
         dict mapping plotter class name → list of saved file Paths.
         """
-        # self._cmap = pypalettes.load_cmap('random')
+        #self._cmap = pypalettes.load_cmap('random')
+        # self._cmap = mpl.colormap['tab20']
         # palette = sns.color_palette(self._cmap.colors)
         # sns.set_palette(palette)
 
@@ -146,7 +152,7 @@ class DataGal:
  
     def _generate_plots(self) -> dict[str, list[Path]]:
         assert self._data is not None, "Data is not loaded."
-        logger.warning("Dataframe:", self._data) 
+        # logger.warning("Dataframe:", self._data) 
         # Pre-compute the ColKind for every column once
         col_kinds: dict[str, ColKind] = {
             col: infer_kind(self._data[col]) for col in self._data.columns
