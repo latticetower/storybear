@@ -148,7 +148,7 @@ class FluxKlein:
             prompt: str = Form(...),
             image: UploadFile = File(...),
             num_inference_steps: int = Form(4),
-            guidance_scale: float = Form(4.0),
+            guidance_scale: float = Form(1.0),
         ):
             """Edit `image` according to `prompt` and return the PNG result."""
             image_bytes = await image.read()
