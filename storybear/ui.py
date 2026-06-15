@@ -54,7 +54,7 @@ class StageProcessor:
     def __getitem__(self, i):
         stage_name, stage_description, stage_func = self.named_stages_list[i]
 
-        def process_step(input_block, request: gr.Request, progress=gr.Progress()):
+        def process_step(input_block, request: gr.Request, progress=gr.Progress(track_tqdm=True)):
             if not input_block:
                 return False
             # stage_name, stage_func = stage_info
@@ -68,7 +68,8 @@ class StageProcessor:
                 #instances[request.session_hash] = stage_func(instance)
                 data = instances[request.session_hash]
                 report = data['report']
-                if report is None:
+                # print(stage_name)
+                if stage_name == "DataGal":  # report is None:
                     new_report = stage_func(data['data_frame'])
                 else:
                     new_report = stage_func(report)
@@ -178,7 +179,7 @@ def build_ui(named_stages_list):
     return demo
 
 
-def create_app(use_llm=True, use_vlm=True, remote=False):
+def create_app(use_llm=True, use_vlm=False, remote=True):
 
     # Choose the inference backend: remote (Modal HTTP services) or local models.
     inference = "storybear.remote_inference" if remote else "storybear.local_inference"

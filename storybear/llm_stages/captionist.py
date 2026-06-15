@@ -31,6 +31,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
+from tqdm.auto import tqdm
 # TODO: debug
 import matplotlib.pyplot as plt
 
@@ -87,12 +88,12 @@ class Captionist(_LLMMixin):
     def process_all(self, report: ReportRecord) -> ReportRecord:
         """Process every PlotRecord in the list."""
         plot_records: list[PlotRecord] = []
-        for i, record in enumerate(report.plot_record_list):
+        for i, record in enumerate(tqdm(report.plot_record_list)):
             logger.info("Captionist: %d/%d — %s", i + 1, len(report.plot_record_list), record.plot_path)
             plot_records.append(self.process(record))
         new_report = ReportRecord(report.header, report.lead, plot_records)
-        for record in new_report.plot_record_list:
-            print(record.plotter_class, record.columns, record.caption)
+        # for record in new_report.plot_record_list:
+        #     print(record.plotter_class, record.columns, record.caption)
         return new_report
 
     def _build_prompt(self, record: PlotRecord) -> str:

@@ -1,6 +1,7 @@
 
 import logging
 from pathlib import Path
+from tqdm.auto import tqdm
 
 from storybear.llm_stages.base import _LLMMixin
 from storybear.data_structures import (
@@ -72,7 +73,7 @@ class Artist(_LLMMixin):
 
     def process_all(self, report: ReportRecord) -> ReportRecord:
         """Post-process all records, preserving their order."""
-        new_plot_record_list = [self.process(r) for r in report.plot_record_list]
+        new_plot_record_list = [self.process(r) for r in tqdm(report.plot_record_list)]
         return ReportRecord(report.header, report.lead, new_plot_record_list)
 
     def _build_prompt(self, record: PlotRecord) -> str:

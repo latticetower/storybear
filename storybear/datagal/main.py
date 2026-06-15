@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 from typing import List, Union, Iterator, Dict
 from collections import defaultdict, OrderedDict
+from tqdm.auto import tqdm
 # 
 import seaborn as sns
 
@@ -155,6 +156,7 @@ class DataGal:
  
         # results: dict[str, list[Path]] = {cls.__name__: [] for cls in self._plotter_classes}
         results = []
+        tbar = tqdm(total=100)
  
         # Enumerate combinations of sizes 1 … max_arity
         for arity in range(-1, self.max_arity + 1):
@@ -189,15 +191,19 @@ class DataGal:
                     # save_path = self._run_plotter(plotter_cls, list(combo))
                     # if save_path is not None:
                     #     results.append((plotter_cls, save_path, kinds, list(combo), stats))
+        tbar.update(50)
 
         logger.warning("Before filtering: %d plot(s)", len(results))
         results = self._plot_filter.get_most_distinct(results)
         # actually save plots:
+        
         saved_results = []
         for plotter_cls, kinds, plot_columns, stats in results:
             save_path = self._run_plotter(plotter_cls, plot_columns)
             if save_path is not None:
                 saved_results.append((plotter_cls.__name__, save_path, kinds, plot_columns, stats))
+        tbar.update(50)
+        tbar.close()
 
         total = len(saved_results)
         logger.warning("Done. %d plot(s) saved to %s", total, self.output_dir)

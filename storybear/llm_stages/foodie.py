@@ -4,6 +4,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
 import numpy as np
+from tqdm.auto import tqdm
 from storybear.llm_stages.base import _LLMMixin
 from storybear.data_structures import PlotRecord, ReportRecord
 
@@ -89,7 +90,7 @@ class Foodie(_LLMMixin):
             with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
                 results = list(pool.map(lambda p: self._compare_pair(records, p), pairs))
         else:
-            results = [self._compare_pair(records, p) for p in pairs]
+            results = [self._compare_pair(records, p) for p in tqdm(pairs)]
 
         for (i, j), ranking in results:
             ranking_list[(i, j)] = ranking

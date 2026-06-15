@@ -3,6 +3,8 @@ import json
 from typing import Tuple, List
 from pathlib import Path
 import logging
+from tqdm.auto import tqdm
+
 from storybear.data_structures import PlotRecord, ReportRecord
 from storybear.llm_stages.base import _LLMMixin
 
@@ -84,9 +86,13 @@ class Editor(_LLMMixin):
         header_prompt, lead_prompt = self._build_prompt(report.plot_record_list)
         #prepared_records = [rec.caption for rec in records_list]
         #prepared_records = prepared_records[:5] # TODO: add view
+        pbar = tqdm(total=100)
         raw_lead = self._call_llm(lead_prompt, report.plot_record_list)
         print(raw_lead)
+        pbar.update(50)
         raw_header = self._call_llm(header_prompt, [raw_lead])
+        pbar.update(50)
+        pbar.close()
         print("raw header", raw_header)
         print("raw lead", raw_lead)
         #header = self._parse_response(raw_header)
