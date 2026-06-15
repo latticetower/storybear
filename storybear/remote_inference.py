@@ -315,7 +315,7 @@ def flux_i2i_func(prompt: str, file_path: Union[str, Path]) -> Path:
     save_file_path = file_path.parent / (file_path.stem + "_mod.png")
     from PIL import Image
     img = Image.open(file_path).convert("RGBA")
-    w, h = klein_size(img.size)
+    w, h = klein_size(*img.size)
     if img.size != (w, h):
         img = img.resize((w, h), Image.LANCZOS)
     # img.thumbnail((512, 512))
@@ -327,7 +327,7 @@ def flux_i2i_func(prompt: str, file_path: Union[str, Path]) -> Path:
     # alpha_composite.save(save_file_path)
     # img.save(save_file_path)
 
-    with open(file_path, "rb") as f:
+    with open(save_file_path, "rb") as f:
         response = requests.post(
             _flux_url(),
             data={"prompt": prompt},

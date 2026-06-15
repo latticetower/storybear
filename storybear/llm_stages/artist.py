@@ -43,11 +43,10 @@ class Artist(_LLMMixin):
     SYSTEM_PROMPT = "Turn this photo into a funny ugly doodle drawing. " \
     "Make it look like: a quick sketch using a cheap marker or crayon messy, " \
     "rough, childlike style, bad perspective and awkward proportions, slightly " \
-    "exaggerated facial features. Add: simple cartoon background (like elven village, " \
+    "exaggerated facial features. \nAdd: simple cartoon background (like elven village, " \
     "trees, squirrel delivery) random sketchy lines and details, uneven coloring and " \
-    "visible strokes. Style: looks like a lazy drawing, not polished humorous and a bit " \
-    "stupid-looking meme-like, casual, internet style, with a bit of magic. Keep the " \
-    "original pattern visible. Do NOT: make it realistic"
+    "visible strokes. \nStyle: looks like a lazy drawing, not polished humorous and a bit " \
+    "stupid-looking meme-like, casual, internet style, with a bit of magic.\nDo NOT: make it realistic"
 
     DEFAULT_STYLE_BRIEF = "clean, modern, publication-ready, consistent colour palette"
 
@@ -114,8 +113,8 @@ class Artist(_LLMMixin):
         if self._llm_image2image_func is None:
             return image_path
         mod_image_path = self._llm_image2image_func(prompt, image_path)
-        save_path = image_path.parent / (image_path.stem + ".png")
-        overlay_images(image_path, mod_image_path, mod_image_path)
+        save_path = image_path.parent / (image_path.stem + "_overlay.png")
+        overlay_images(mod_image_path, image_path, save_path)
         # print(img)
         return save_path
 

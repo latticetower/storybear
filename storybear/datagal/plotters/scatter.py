@@ -19,8 +19,8 @@ class ScatterPlotter(BasePlotter):
     def plot(self, data, columns, save_path: Path, cmap=None) -> Path:
         x_col, y_col = columns
         fig, ax = plt.subplots()
-        # fig.patch.set_alpha(0.0)
-        # ax.patch.set_alpha(0.5)
+        fig.patch.set_alpha(0.0)
+        ax.patch.set_alpha(0.5)
         subset = data[[x_col, y_col]].dropna().values
         if cmap is not None:
             palette = sns.color_palette(cmap.colors)
@@ -85,8 +85,8 @@ class BoxPlotter(BasePlotter):
         cat_col, num_col = columns
         subset = data[[cat_col, num_col]].dropna()
         fig, ax = plt.subplots()
-        # fig.patch.set_alpha(0.0)
-        # ax.patch.set_alpha(0.5)
+        fig.patch.set_alpha(0.0)
+        ax.patch.set_alpha(0.5)
         groups = [
             grp[num_col].dropna().values
             for _, grp in subset.groupby(cat_col)

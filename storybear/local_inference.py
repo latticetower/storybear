@@ -5,7 +5,7 @@ from transformers import AutoProcessor, AutoModelForImageTextToText
 
 from PIL import Image
 from diffusers import Flux2KleinPipeline
-
+import random
 from pathlib import Path
 from typing import Union
 from typing import List, Tuple
@@ -21,9 +21,12 @@ else:
     device = "cpu"
 dtype = torch.bfloat16
 
+
+MAX_SEED = 2**31 - 1
+
 print("Local inference, using device:", device)
 
-flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-base-4B", torch_dtype=dtype).to(device)
+flux_pipe = Flux2KleinPipeline.from_pretrained("black-forest-labs/FLUX.2-klein-4B", torch_dtype=dtype).to(device)
 if device != "cpu":
     flux_pipe.enable_model_cpu_offload()  # save some VRAM by offloading the model to CPU
 
@@ -57,25 +60,29 @@ def flux_i2i_func(prompt: str, file_path: Path):
     # from diffusers import Flux2KleinPipeline
     from PIL import Image
     file_path = Path(file_path)
-    reference = Image.open(file_path).convert("RGBA") #.resize((1024, 1024))
+    reference = Image.open(file_path).convert("RGB") #.resize((1024, 1024))
     
     save_file_path = file_path.parent / (file_path.stem + "_mod.png")
+    seed = random.randint(0, MAX_SEED)
     
     # img = Image.open(file_path).convert("RGBA")
-    w, h = klein_size(reference.size)
+    w, h = klein_size(*reference.size)
     if reference.size != (w, h):
         reference = reference.resize((w, h), Image.LANCZOS)
     # img.thumbnail((512, 512))
     # img.save(file_path)
 
     reference.save(save_file_path)
-    
+
     print(reference.size)
     img = flux_pipe(
         prompt=prompt, 
         image=reference, 
+        width=w,
+        height=h,
         num_inference_steps=4, 
-        guidance_scale=1.0
+        guidance_scale=1.0,
+        generator=torch.Generator(device=device).manual_seed(int(seed)),
     ).images[0]
     save_file_path = file_path.parent / (file_path.stem + "_mod.png")
 
