@@ -8,6 +8,7 @@ description = "Pipeline to add some magic for data storytelling"
 
 authors = [
   {name = "Tatiana Malygina"},
+  {name = "Michael Gamov"},
 ]
 maintainers = [
   {name = "Tatiana Malygina"}
