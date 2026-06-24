@@ -24,6 +24,10 @@ class _LLMMixin:
 
     SYSTEM_PROMPT: str = "You are a helpful data analysis assistant."
 
+    @property
+    def name(self):
+        return self.__class__.__name__
+
     def _call_llm(self, prompt: str, records_list: List[PlotRecord]) -> str:
         """
         Send *prompt* to the LLM and return the plain-text response.

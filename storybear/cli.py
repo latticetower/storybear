@@ -61,7 +61,7 @@ def main_cli(csv, tempdir, captionist, foodie, editor, artist, show_warnings, re
         output_format=format
     )
     pipeline.run()
-    
+
 
 if __name__ == '__main__':
     print("Run cli as a script")

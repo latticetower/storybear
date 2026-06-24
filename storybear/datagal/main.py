@@ -48,6 +48,13 @@ class DataGal:
     file_format:
         Image format passed to ``figure.savefig`` (e.g. "png", "svg", "pdf").
     """
+    @property
+    def name(self):
+        return self.__class__.__name__
+ 
+    @property
+    def description(self):
+        return 'generates plots and filters them'
  
     def __init__(
         self,

@@ -49,10 +49,14 @@ class Artist(_LLMMixin):
     "stupid-looking meme-like, casual, internet style, with a bit of magic.\nDo NOT: make it realistic"
 
     DEFAULT_STYLE_BRIEF = "clean, modern, publication-ready, consistent colour palette"
+    @property
+    def description(self):
+        return 'creatively morphs plots to something else'
 
-    def __init__(self, style_brief: str | None = None) -> None:
+
+    def __init__(self, style_brief: str | None = None, func=None) -> None:
         self.style_brief =  self.SYSTEM_PROMPT
-        self._llm_image2image_func = None
+        self._llm_image2image_func = func
 
     def __call__(self, report: ReportRecord) -> ReportRecord:
         return self.process_all(report)

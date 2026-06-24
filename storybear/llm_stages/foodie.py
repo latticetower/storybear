@@ -42,13 +42,16 @@ class Foodie(_LLMMixin):
         "novelty, statistical significance, visual clarity, "
         "and potential reader interest"
     )
+    @property
+    def description(self):
+        return 'reranker - selects most interesting plots'
 
-    def __init__(self, criteria: str | None = None, max_workers: int = 1, debug :bool=True) -> None:
+    def __init__(self, criteria: str | None = None, max_workers: int = 1, func=None, debug :bool=True) -> None:
         self.criteria = criteria or self.DEFAULT_CRITERIA
-        self._llm_image2text_func = None
+        self.max_workers = max_workers
+        self._llm_image2text_func = func
         # Pairwise comparisons are independent and I/O-bound against the remote
         # VLM, so we fan them out across threads (the server batches them).
-        self.max_workers = max_workers
         self.debug = debug
 
     def __call__(self, report: ReportRecord) -> ReportRecord:

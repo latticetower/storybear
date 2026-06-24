@@ -27,6 +27,10 @@ class Junior(_LLMMixin):
         "You are a junior data journalist arranging chart-caption pairs "
         "into a compelling narrative order. Return ONLY valid JSON."
     )
+    @property
+    def description(self):
+        return 'polishes everything (this part is unfinished)'
+
     def __call__(self, report: ReportRecord) -> ReportRecord:
         return self.arrange(report)
 

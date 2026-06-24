@@ -29,6 +29,9 @@ class Secretary:
     top_n:
         Number of (P, C, R) triplets to keep.
     """
+    @property
+    def description(self):
+        return 'helper - filters plots based on their rating'
 
     def __init__(self, top_n: int = 5) -> None:
         self.top_n = top_n
@@ -71,12 +74,15 @@ class Editor(_LLMMixin):
         "in the most sensational facts and don't mention exact numbers in your texts.\n"
         "Remember that you are still a squirrel and sometimes you talk about nuts or mention your fluffy tail."
     )
+    @property
+    def description(self):
+        return 'generates header and lead for the report'
 
-    def __init__(self, exaggeration: float = 0.6) -> None:
+    def __init__(self, exaggeration: float = 0.6, func=None) -> None:
         if not 0.0 <= exaggeration <= 1.0:
             raise ValueError("exaggeration must be in [0, 1]")
         self.exaggeration = exaggeration
-        self._llm_image2text_func = None
+        self._llm_image2text_func = func
 
     def __call__(self, report: ReportRecord) -> ReportRecord:
         return self.compose(report)

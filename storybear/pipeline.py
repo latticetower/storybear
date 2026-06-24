@@ -90,7 +90,7 @@ class StorybearPipeline:
         exaggeration: float = 0.3,
         max_arity: int = 2,
         image_width_inches: float = 5.5,
-        stages: dict | None = None,
+        stages: List[ DataGal | _LLMMixin | BasicPrinter] | None = None,
         captionist_it2t_func=None,
         foodie_it2t_func=None,
         editor_it2t_func=None,
@@ -116,57 +116,77 @@ class StorybearPipeline:
         self.report_dir.mkdir(parents=True, exist_ok=True)
 
         # Build stage instances (allow injection for testing / customisation)
-        s = stages or {}
-        self._datagal = DataGal(
-            csv_path=self.csv_path,
-            # plotters_dir=self.plotters_dir,
-            output_dir=self.plots_dir,
-            max_arity=self.max_arity,
-        )
-        self._captionist: Captionist = s.get("captionist", Captionist())
-        if captionist_it2t_func is not None:
-            self._captionist.set_llm_image2text(captionist_it2t_func)
-        
-        self._foodie: Foodie = s.get("foodie", Foodie())
-        if foodie_it2t_func is not None:
-            self._foodie.set_llm_image2text(foodie_it2t_func)
-        self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
-        self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))
-        if editor_it2t_func is not None:
-            self._editor.set_llm_image2text(editor_it2t_func)
-        self._junior: Junior = s.get("junior", Junior())
-        self._artist: Artist = s.get("artist", Artist())
-        if artist_i2i_func is not None:
-            self._artist._set_llm_image2image(artist_i2i_func)
+        if stages is None or len(stages) < 1:
+            self.stages = [
+                DataGal(
+                    csv_path=self.csv_path,
+                    # plotters_dir=self.plotters_dir,
+                    output_dir=self.plots_dir,
+                    max_arity=self.max_arity,
+                ),
+                Captionist(func=captionist_it2t_func),
+                Foodie(func=foodie_it2t_func),
+                Secretary(top_n=self.top_n),
+                Editor(exaggeration=self.exaggeration, func=editor_it2t_func),
+                Junior(),
+                Artist(func=artist_i2i_func),
+                
 
-        self._typography: BasicPrinter = s.get(
-            "typography",
-            get_printer(
-                output_format,
-                name="report",
-                output_dir=self.report_dir,
-                image_width_inches=self.image_width_inches
-            )
-            # Typography(
-            #     output_path=self.report_dir / "report.docx",
-            #     image_width_inches=self.image_width_inches,
-            # ),
+            ]
+        else:
+            self.stages = stages
+
+        self._typography = get_printer(
+            output_format,
+            name="report",
+            output_dir=self.report_dir,
+            image_width_inches=self.image_width_inches,
         )
+        # s = stages or {}
+        # self._datagal = 
+        #self._captionist: Captionist = s.get("captionist", )
+        # if captionist_it2t_func is not None:
+        #     self._captionist.set_llm_image2text(captionist_it2t_func)
+        
+        #self._foodie: Foodie = s.get("foodie", Foodie())
+        #if foodie_it2t_func is not None:
+        #    self._foodie.set_llm_image2text(foodie_it2t_func)
+        # self._secretary: Secretary = s.get("secretary", Secretary(top_n=self.top_n))
+        # self._editor: Editor = s.get("editor", Editor(exaggeration=self.exaggeration))
+        #if editor_it2t_func is not None:
+        #    self._editor.set_llm_image2text(editor_it2t_func)
+        # self._junior: Junior = s.get("junior", Junior())
+        #self._artist: Artist = s.get("artist", Artist())
+        #if artist_i2i_func is not None:
+        #    self._artist._set_llm_image2image(artist_i2i_func)
+
+        # self._typography: BasicPrinter = s.get(
+        #     "typography",
+            
+        #     # Typography(
+        #     #     output_path=self.report_dir / "report.docx",
+        #     #     image_width_inches=self.image_width_inches,
+        #     # ),
+        # )
     
 
     # ------------------------------------------------------------------
     # Main entry point
     # ------------------------------------------------------------------
-    def get_stages(self) -> List[Tuple[str, Union[DataGal, _LLMMixin, BasicPrinter]]]:
+    def get_stages(self) -> List[Tuple[str, str, Union[DataGal, _LLMMixin, BasicPrinter]]]:
         return [
-            ('DataGal', 'generates plots and filters them', self._datagal),
-            ('Captionist', 'draws plot captions with LLM', self._captionist),
-            ('Foodie', 'reranker - selects most interesting plots', self._foodie),
-            ('Secretary', 'helper - filters plots based on their rating', self._secretary),
-            ('Editor', 'generates header and lead for the report', self._editor),
-            ('Junior', 'polishes everything (this part is unfinished)', self._junior),
-            ('Artist', 'creatively morphs plots to something else', self._artist),
+            (s.name, s.description, s)
+            for s in self.stages
         ]
+        # return [
+        #     ('DataGal', 'generates plots and filters them', self._datagal),
+        #     ('Captionist', 'draws plot captions with LLM', self._captionist),
+        #     ('Foodie', 'reranker - selects most interesting plots', self._foodie),
+        #     ('Secretary', 'helper - filters plots based on their rating', self._secretary),
+        #     ('Editor', 'generates header and lead for the report', self._editor),
+        #     ('Junior', 'polishes everything (this part is unfinished)', self._junior),
+        #     ('Artist', 'creatively morphs plots to something else', self._artist),
+        # ]
         pass
 
     def run(self) -> Tuple[ReportRecord, Path]:

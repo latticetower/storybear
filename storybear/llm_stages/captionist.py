@@ -75,10 +75,14 @@ class Captionist(_LLMMixin):
         "You are trying to be both easy-to-read and informative, and your deepest dreem is to become editor-in-chief some day."
         "Be concise, precise, and highlight the most surprising finding with a small explanation what does it means (2-3 short and easy to read sentences).\n"
     )
+    @property
+    def description(self):
+        return 'draws plot captions with LLM'
+    
 
-    def __init__(self, max_caption_words: int = 60) -> None:
+    def __init__(self, max_caption_words: int = 60, func=None) -> None:
         self.max_caption_words = max_caption_words
-        self._llm_image2text_func = None
+        self._llm_image2text_func = func
 
     def __call__(self, report: ReportRecord) -> ReportRecord:
         return self.process_all(report)
