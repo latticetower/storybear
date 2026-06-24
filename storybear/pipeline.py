@@ -90,6 +90,7 @@ class StorybearPipeline:
         exaggeration: float = 0.3,
         max_arity: int = 2,
         image_width_inches: float = 5.5,
+        datagal=None,
         stages: List[ DataGal | _LLMMixin | BasicPrinter] | None = None,
         captionist_it2t_func=None,
         foodie_it2t_func=None,
@@ -114,16 +115,20 @@ class StorybearPipeline:
         self.report_dir = base / "report"
         self.plots_dir.mkdir(parents=True, exist_ok=True)
         self.report_dir.mkdir(parents=True, exist_ok=True)
+        
+        if datagal is None:
+            self._datagal = DataGal(
+                # csv_path=self.csv_path,
+                # plotters_dir=self.plotters_dir,
+                # output_dir=self.plots_dir,
+                max_arity=self.max_arity,
+            ) 
+        else:
+            self._datagal = datagal
 
         # Build stage instances (allow injection for testing / customisation)
         if stages is None or len(stages) < 1:
             self.stages = [
-                DataGal(
-                    csv_path=self.csv_path,
-                    # plotters_dir=self.plotters_dir,
-                    output_dir=self.plots_dir,
-                    max_arity=self.max_arity,
-                ),
                 Captionist(func=captionist_it2t_func),
                 Foodie(func=foodie_it2t_func),
                 Secretary(top_n=self.top_n),
@@ -174,7 +179,7 @@ class StorybearPipeline:
     # Main entry point
     # ------------------------------------------------------------------
     def get_stages(self) -> List[Tuple[str, str, Union[DataGal, _LLMMixin, BasicPrinter]]]:
-        return [
+        return [ (self._datagal.name, self._datagal.description, self._datagal) ]+[
             (s.name, s.description, s)
             for s in self.stages
         ]
@@ -191,46 +196,27 @@ class StorybearPipeline:
 
     def run(self) -> Tuple[ReportRecord, Path]:
         """
-        Execute all nine stages in sequence.
+        Execute all stages in sequence.
 
         Returns
         -------
         Path to the generated .docx report.
         """
         # ── Step 2: generate plots + stats ────────────────────────────
-        logger.info("=== Step 2: DataGal ===")
-        plot_records = self._datagal.run()
-        logger.info("DataGal produced %d plot(s).", len(plot_records))
-        report = ReportRecord("", "", plot_record_list=plot_records)
-
+        if self._datagal is not None:
+            logger.info("=== Stage 0: DataGal ===")
+            plot_records = self._datagal.run(csv_path=self.csv_path, output_dir=self.plots_dir)
+            logger.info("DataGal produced %d plot(s).", len(plot_records))
+            report = ReportRecord("", "", plot_record_list=plot_records)
+            
+        # todo: add data paths if generation is omitted
+        # todo: use folder and filename as datagal parameters
         if not plot_records:
             raise RuntimeError("DataGal produced no plots — check your plotters directory.")
 
-        # ── Step 3: caption each plot ─────────────────────────────────
-        logger.info("=== Step 3: Captionist ===")
-        report = self._captionist.process_all(report)
-        # return captioned, None
-
-        # ── Step 4: rank each (plot, caption) pair ────────────────────
-        logger.info("=== Step 4: Foodie ===")
-        report = self._foodie.process_all(report)
-
-        # ── Step 5: keep top-N ────────────────────────────────────────
-        logger.info("=== Step 5: Secretary ===")
-        report = self._secretary.select(report)
-
-        # ── Step 6: compose header + lead ─────────────────────────────
-        logger.info("=== Step 6: Editor ===")
-        report: ReportRecord = self._editor.compose(report)
-        logger.info("Header: %s", report.header)
-
-        # ── Step 7: reorder for narrative flow ────────────────────────
-        logger.info("=== Step 7: Junior ===")
-        report = self._junior.arrange(report)
-
-        # ── Step 8: artistic post-processing ─────────────────────────
-        logger.info("=== Step 8: Artist ===")
-        report: ReportRecord = self._artist.process_all(report)
+        for i, stage in enumerate(self.stages):
+            logger.info(f"=== Stage {i+1}: {stage.name.capitalize()} ===")
+            report = stage(report)
 
         # ── Step 9: assemble docx report ─────────────────────────────
         logger.info("=== Step 9: Typography ===")

@@ -58,29 +58,29 @@ class DataGal:
  
     def __init__(
         self,
-        csv_path: str | Path | None = None,
-        output_dir: str | Path | None = None,
+        # csv_path: str | Path | None = None,
+        # output_dir: str | Path | None = None,
         plotters_dir: str | Path = "datagal/plotters",
         max_arity: int = 2,
         file_format: str = "png",
     ) -> None:
 
-        self.csv_path = Path(csv_path) if csv_path is not None else csv_path
+        # self.csv_path = Path(csv_path) if csv_path is not None else csv_path
         self.plotters_dir = root_path / plotters_dir
         self.max_arity = max_arity
         self.file_format = file_format
  
-        if output_dir is None:
-            self.output_dir = Path(tempfile.mkdtemp(prefix="eda_plots_"))
-            print(f"[DataGal] Output directory: {self.output_dir}")
-        else:
-            self.output_dir = Path(output_dir)
-            self.output_dir.mkdir(parents=True, exist_ok=True)
+        # if output_dir is None:
+        #     self.output_dir = Path(tempfile.mkdtemp(prefix="eda_plots_"))
+        #     print(f"[DataGal] Output directory: {self.output_dir}")
+        # else:
+        #     self.output_dir = Path(output_dir)
+        #     self.output_dir.mkdir(parents=True, exist_ok=True)
  
         # self._plotter_classes: list[type[BasePlotter]] = []
-        self._data: pd.DataFrame | None = None
+        # self._data: pd.DataFrame | None = None
         self._cmap = None
-        self._filtered_columns = []
+        # self._filtered_columns = []
         self._plot_filter = TextFilter(10)
 
         self._cmap = mpl.colormaps['tab20']
@@ -95,14 +95,14 @@ class DataGal:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def __call__(self, df: pd.DataFrame) -> ReportRecord:
+    def __call__(self, df: pd.DataFrame, output_dir: Path|str) -> ReportRecord:
         if not isinstance(df, pd.DataFrame):
             raise TypeError(f"DataGal: accepts dataframe in __call__, got {type(df)}")
 
-        self._data = df
-        self._filtered_columns = self._apply_columns_filters(self._data)
+        # self._data = df
+        filtered_columns = self._apply_columns_filters(df)
         # self._load_plotters()
-        plot_info = self._generate_plots()
+        plot_info = self._generate_plots(df, filtered_columns, output_dir)
         all_records = []
         for plotter_class_name, plot_path, plot_name, kinds, columns, stats in plot_info:
             record = PlotRecord(plot_path, plot_name, columns, plotter_class_name, stats)
@@ -110,7 +110,7 @@ class DataGal:
         report = ReportRecord("", "", all_records)
         return report
  
-    def run(self) -> List[PlotRecord]: #dict[str, list[Path]]:
+    def run(self, csv_path: Path | str, output_dir: Path|str) -> List[PlotRecord]: #dict[str, list[Path]]:
         """
         Full pipeline: load data → load plugins → generate all plots.
  
@@ -122,10 +122,20 @@ class DataGal:
         # self._cmap = mpl.colormap['tab20']
         # palette = sns.color_palette(self._cmap.colors)
         # sns.set_palette(palette)
+        
+        
+        if output_dir is None:
+            output_dir = Path(tempfile.mkdtemp(prefix="eda_plots_"))
+            # print(f"[DataGal] Output directory: {self.output_dir}")
+        else:
+            output_dir = Path(output_dir)
+            # self.output_dir = Path(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+ 
 
-        self._load_data()
+        df, filtered_columns = self._load_data(csv_path)
         # self._load_plotters()
-        plot_info = self._generate_plots()
+        plot_info = self._generate_plots(df, filtered_columns, output_dir)
         all_records = []
         for plotter_class_name, plot_path, plot_name, kinds, columns, stats in plot_info:
             record = PlotRecord(plot_path, plot_name, columns, plotter_class_name, stats)
@@ -135,20 +145,22 @@ class DataGal:
     # Step 1 — data loading
     # ------------------------------------------------------------------
  
-    def _load_data(self, df: pd.DataFrame | None = None) -> None:
-        if df is not None:
-            self._data = df
-        elif self.csv_path is None:
-            logger.warning("DataGal, _load_data: csv_path is None, do nothing")
-            return
-        logger.info("Loading CSV: %s", self.csv_path)
-        self._data = pd.read_csv(self.csv_path)
+    def _load_data(self, csv_path: Path|str) -> List[pd.DataFrame, List[str]]:
+        csv_path = Path(csv_path)
+        # if df is not None:
+        #     self._data = df
+        # elif self.csv_path is None:
+        #     logger.warning("DataGal, _load_data: csv_path is None, do nothing")
+        #     return
+        logger.info("Loading CSV: %s", csv_path)
+        df = pd.read_csv(csv_path)
         logger.info(
             "Loaded %d rows × %d columns", len(self._data), len(self._data.columns)
         )
         # self._filtered_columns = self._data.columns
         # apply filter here
-        self._filtered_columns = self._apply_columns_filters(self._data)
+        filtered_columns = self._apply_columns_filters(df)
+        return df, filtered_columns
 
     def _apply_columns_filters(self, df: pd.DataFrame) -> List[str]:
         default_columns = df.columns
@@ -162,12 +174,12 @@ class DataGal:
     # Step 3 — plot generation
     # ------------------------------------------------------------------
  
-    def _generate_plots(self) -> dict[str, list[Path]]:
-        assert self._data is not None, "Data is not loaded."
+    def _generate_plots(self, df: pd.DataFrame, filtered_columns: List[str], output_dir: Path|str) -> Dict[str, List[Path]]:
+        # assert self._data is not None, "Data is not loaded."
         # logger.warning("Dataframe:", self._data) 
         # Pre-compute the ColKind for every column once
         col_kinds: dict[str, ColKind] = {
-            col: infer_kind(self._data[col]) for col in self._data.columns
+            col: infer_kind(df[col]) for col in filtered_columns
         }
         logger.info("Column kinds: %s", col_kinds)
         logger.warning("Before generation: %d columns (out of %d) in use, %s", len(self._filtered_columns), len(self._data.columns), self._filtered_columns)
@@ -184,25 +196,25 @@ class DataGal:
             logger.warning("Plotter classes for arity %d: %d", arity, len(plotters_for_arity))
             if arity <= 0:
                 # process differently, since this plotter uses all available columns
-                kinds = tuple(col_kinds[c] for c in self._filtered_columns)
+                kinds = tuple(col_kinds[c] for c in filtered_columns)
                 for plotter_cls in plotters_for_arity:
-                    stats = self._get_plot_info(plotter_cls, list(self._filtered_columns))
+                    stats = self._get_plot_info(plotter_cls, df, filtered_columns)
                     logger.debug("   %s with %d columns - stats status: %s", plotter_cls.__name__, len(self._filtered_columns), stats is not None)
                     if stats is not None:
-                        results.append((plotter_cls, kinds, list(self._filtered_columns), stats))
+                        results.append((plotter_cls, kinds, list(filtered_columns), stats))
                     # save_path = self._run_plotter(plotter_cls, list(self._filtered_columns))
                     # if save_path is not None:
                     #     results.append((plotter_cls, save_path, kinds, list(self._filtered_columns), stats))
                 continue
  
-            for combo in itertools.combinations(self._filtered_columns, arity):
+            for combo in itertools.combinations(filtered_columns, arity):
                 kinds = tuple(col_kinds[c] for c in combo)
  
                 for plotter_cls in plotters_for_arity:
                     logger.debug("  Plotter class %s with columns %s, kinds %s", plotter_cls.__name__, list(combo), kinds)
                     if not plotter_cls.accepts(kinds):
                         continue
-                    stats = self._get_plot_info(plotter_cls, list(combo))
+                    stats = self._get_plot_info(plotter_cls, df, list(combo))
                     logger.info("Plotter class %s with columns %s - stats status: %s", plotter_cls.__name__, list(combo), stats is not None)
                     if stats is not None:
                         results.append((plotter_cls, kinds, list(combo), stats))
@@ -217,7 +229,7 @@ class DataGal:
         
         saved_results = []
         for plotter_cls, kinds, plot_columns, stats in results:
-            save_path, plot_name = self._run_plotter(plotter_cls, plot_columns)
+            save_path, plot_name = self._run_plotter(plotter_cls, df, plot_columns, output_dir)
             if save_path is not None:
                 saved_results.append((plotter_cls.__name__, save_path, plot_name, kinds, plot_columns, stats))
         tbar.update(50)
@@ -227,17 +239,17 @@ class DataGal:
         logger.warning("Done. %d plot(s) saved to %s", total, self.output_dir)
         return saved_results
  
-    def _run_plotter(self, plotter_cls, columns: list[str]) -> Path | None:
+    def _run_plotter(self, plotter_cls, data:pd.DataFrame, columns: List[str], output_dir: Path | str) -> Path | None:
         """Instantiate the plotter, call plot(), and save the figure."""
-        assert self._data is not None
  
         plotter = plotter_cls()
         plotter.set_output_dir(self.output_dir)
         cols_slug = "_".join(columns)
         filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
-        save_path = self.output_dir / filename
+        output_dir = Path(output_dir)
+        save_path = output_dir / filename
         try:
-            save_path, plot_name = plotter.plot(self._data, columns, save_path, cmap=self._cmap)
+            save_path, plot_name = plotter.plot(data, columns, save_path, cmap=self._cmap)
             if save_path is None:
                 logger.warning(
                     "%s.plot() returned None for columns %s — skipping.",
@@ -255,9 +267,9 @@ class DataGal:
             )
             return None, "no name"
 
-    def _get_plot_info(self, plotter_cls, columns: list[str]) -> OrderedDict | None:
+    def _get_plot_info(self, plotter_cls, data:pd.DataFrame, columns: list[str]) -> OrderedDict | None:
         """Instantiate the plotter, call plot(), and save the figure."""
-        assert self._data is not None
+        # assert self._data is not None
  
         plotter = plotter_cls()
         plotter.set_output_dir(self.output_dir)
@@ -265,7 +277,7 @@ class DataGal:
         #filename = f"{plotter_cls.__name__}__{cols_slug}.{self.file_format}"
         #save_path = self.output_dir / filename
         try:
-            stats = plotter.compute_statistics(self._data, columns)
+            stats = plotter.compute_statistics(data, columns)
             return stats
         except Exception as exc:
             logger.error(
